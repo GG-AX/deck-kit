@@ -81,8 +81,8 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `video` | 화면 가득 영상 | `.video-full` > `.vbox`(video + `.play`). ▶ 클릭이나 Enter로 재생 |
 | `chapter` | 챕터 커버 | `.divider`: 큰 번호 + 챕터명 + `.agenda`(지금 챕터만 `.on`) |
 | `chart` | 숫자·차트 | 막대 `data-bars`, 트리맵 `data-treemap`, 비율 막대 `.cats`>`.cr`, 카운트업 `data-count` |
-| `chart-2` | 추세·구성 | 선 그래프 `data-line`, 누적 막대 `data-stack`, 결론 `.concl` |
-| `logos` | 로고 격자 4×4 | `.logo-grid4`>`.lg`(img + 상태 캡션 `.note`) |
+| `chart-2` | 추세·구성 | 선 그래프 `data-line`, 누적 막대 `data-stack`(조각 라벨 `"labels":true`), 결론 `.concl` |
+| `logos` | 로고 격자 4×4 | `.logo-grid4 data-logo-area`>`.lg`(img + 상태 캡션 `.note`) — 로고 크기는 엔진이 면적으로 맞춘다 |
 | `kpi` | 숫자 카드 + 도넛 | 카드 안 `.donut`(`data-donut`) + 카운트업, 아래 비율 막대 |
 | `columns` | 3단 카드 + 결론 | `.rule` 칼럼(제목·`ul.list`·`.hl`) + `.concl` + 출처 `.foot` |
 | `photo-steps` | 사진 + 글 + 단계 | `.figure`(+ 출처 `.src`), `.chip`, 01→05 `.flow` |
@@ -109,7 +109,9 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
   - 각 항목은 `[이름, 값, 강조 "fc"·"fc2"(선택), 표시 글(선택)]`이다.
   - 가장 큰 막대가 높이의 85%다. 메모는 `<div class="anno" style="left:40%;top:3%">…</div>`를 안에 넣는다.
 - 선 그래프: `<div class="lc" data-line='{"x":["Jan","Feb",…],"series":[["2026",[42,45,…]],["2025",[…]]]}'></div>`
-- 누적 막대: `<div class="stack" data-stack='{"x":["2024",…],"series":[["Stores",[300,…]],["Online",[…]]]}'></div>`
+- 누적 막대: `<div class="stack" data-stack='{"x":["2024",…],"series":[["Stores",[300,…]],["Online",[…]]],"labels":true}'></div>`
+  - `"labels":true`: 범례 대신 조각마다 "이름 (비율%)"을 붙인다. 넓은 조각은 안에, 좁은 조각은 막대 옆에 겹치지 않게 놓고, 자리가 모자라면 막대를 좁힌다. 빼면 범례만 나온다.
+- 로고 크기: 로고를 담은 칸(예: `.logo-grid4`)에 `data-logo-area="2400"`(로고 하나의 보이는 면적, 무대 px²). 가로로 긴 로고와 네모난 로고가 같은 무게로 보인다. 상한은 `data-logo-max="190,64"`(가로,세로), 한 로고만 크거나 작아 보이면 그 img에 `data-optical="0.8"`. 로고 파일의 여백은 먼저 `images.py trim`으로 잘라 낸다.
 - 도넛: `<div class="donut" style="width:52px;height:52px" data-donut='[["A",55,"var(--tone-2)"],["",45,"var(--fill)"]]'><div class="svg-host"></div></div>`
 - 트리맵: `<div class="tm" data-treemap='[["Brand A",24,"assets/img/…/logo.webp"],…]'></div>` — 큰 값부터 쓴다.
 - 카운트업: `<b data-count="128" data-suffix="%">128%</b>`

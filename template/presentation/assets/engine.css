@@ -185,6 +185,15 @@ ul.list li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:
 .stack .bars i{background:var(--c);min-height:0}
 .slide.active .stack .bars{animation:growy .9s var(--grow) both;animation-delay:calc(var(--d,0)*90ms + 300ms)}
 .slide.active .stack .tot{animation:fade .4s ease both;animation-delay:calc(var(--d,0)*90ms + 900ms)}
+/* piece labels (data-stack "labels":true): placed by engine.js, fade in with the column totals */
+.stack.labeled{position:relative}
+.stack.labeled .bars{max-width:none;width:42%}
+.stack .col{position:relative}
+.stack .sl{position:absolute;white-space:nowrap;font:600 11px/1.25 var(--ff);color:var(--key);transform:translateY(-50%);opacity:0;pointer-events:none}
+.stack .sl.in{text-align:center;transform:translate(-50%,-50%)}
+.stack .sl.in.inv{color:#fff}
+.stack .sl.out{color:var(--body)}
+.slide.active .stack .sl{animation:fade .4s ease both;animation-delay:calc(var(--d,0)*90ms + 900ms)}
 
 /* share bars: label above, bar at its true proportion, value at the right */
 .cats{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;margin-top:10px}
@@ -300,5 +309,5 @@ html.static .vbars .bar,html.static .cr .cf{transform:none;animation:none!import
 html.static .donut .seg{opacity:1;animation:none!important}
 html.static .tm .tl{opacity:1;animation:none!important}
 html.static .lc-plot svg{clip-path:none;animation:none!important}
-html.static .lc-dot,html.static .lc-end,html.static .stack .tot{opacity:1;animation:none!important}
+html.static .lc-dot,html.static .lc-end,html.static .stack .tot,html.static .stack .sl{opacity:1;animation:none!important}
 html.static .stack .bars{transform:none;animation:none!important}

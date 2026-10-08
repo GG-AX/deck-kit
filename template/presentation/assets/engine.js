@@ -1,4 +1,4 @@
-/* deck-kit engine v1.0 (2026-10-07) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
+/* deck-kit engine v1.1 (2026-10-08) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
 (function () {
   "use strict";
   var VERSION = "1.0";
@@ -156,18 +156,90 @@
     });
   }
 
-  /* ---------- stacked bars: <div class="stack" data-stack='{"x":["2024",…],"series":[["오프라인",[120,…]],["온라인",[60,…]]]}'></div>
-     first series at the bottom, darkest; the tallest column is 85%; each column's total on top ---------- */
+  /* ---------- stacked bars: <div class="stack" data-stack='{"x":["2024",…],"series":[["오프라인",[120,…]],["온라인",[60,…]]],"labels":true}'></div>
+     first series at the bottom, darkest; the tallest column is 85%; each column's total on top.
+     "labels":true → every piece gets "name (share%)" instead of a legend: inside on two lines or one line when it fits,
+     otherwise beside the bar (pushed apart so they never overlap; on the left when the right side would leave the chart) ---------- */
   function renderStacks() {
     each("[data-stack]", function (host) {
       var o = JSON.parse(host.getAttribute("data-stack")), ns = o.series.length;
       var tot = o.x.map(function (_, i) { return o.series.reduce(function (sum, s) { return sum + (s[1][i] || 0); }, 0); });
       var max = Math.max.apply(null, tot) || 1;
-      function color(k) { return tone(ns > 1 ? Math.round(k * 6 / (ns - 1)) : 0); }
-      host.innerHTML = legend(o.series, color, "sq") + '<div class="stack-cols">' + o.x.map(function (_, i) {
+      function shade(k) { return ns > 1 ? Math.round(k * 6 / (ns - 1)) : 0; }
+      function color(k) { return tone(shade(k)); }
+      host.classList.toggle("labeled", !!o.labels);
+      host.innerHTML = (o.labels ? "" : legend(o.series, color, "sq")) + '<div class="stack-cols">' + o.x.map(function (_, i) {
         return '<div class="col" style="--d:' + i + '"><div class="tot">' + esc(tot[i].toLocaleString("en-US")) + '</div><div class="bars" style="--h:' + tot[i] * 85 / max + '%">' +
           o.series.map(function (s, k) { return '<i style="--c:' + color(k) + ";flex:" + (s[1][i] || 0) + '"></i>'; }).join("") + "</div></div>";
       }).join("") + '</div><div class="vbars-x">' + o.x.map(function (t) { return "<span>" + esc(t) + "</span>"; }).join("") + "</div>";
+      if (o.labels) fontsReady().then(function () { stackLabels(host, o, tot, shade); });
+    });
+  }
+  // Positions are stage px from layout (offset*), so the deck scale and the grow animation do not disturb them.
+  // A label beside a bar must end before the next bar (or the chart's right edge): when one does not fit even on two lines,
+  // the bars get narrower (between columns) or the chart gets right padding (last column), and the labels are placed again.
+  function stackLabels(host, o, tot, shade) {
+    var plot = host.querySelector(".stack-cols"), xs = host.querySelector(".vbars-x"), pad = 0;   // offsets are relative to host / col (both positioned)
+    var cols = [].slice.call(plot.children), bars = cols.map(function (c) { return c.querySelector(".bars"); });
+    for (var pass = 0; pass < 4; pass++) {
+      host.querySelectorAll(".sl").forEach(function (e) { e.remove(); });
+      var over = 0, right = 0;
+      cols.forEach(function (col, i) {
+        var b = bars[i], bw = b.offsetWidth, bh = b.offsetHeight, bl = b.offsetLeft, base = b.offsetTop + bh, acc = 0, outs = [];
+        var room = i < cols.length - 1 ? cols[i + 1].offsetLeft + bars[i + 1].offsetLeft - col.offsetLeft - bl - bw - 12
+                                       : host.clientWidth - col.offsetLeft - bl - bw - 8;
+        o.series.forEach(function (s, k) {
+          var v = s[1][i] || 0; if (!v) return;
+          var h = bh * v / tot[i], mid = base - acc - h / 2, name = esc(s[0]), pct = Math.round(v / tot[i] * 100) + "%";
+          acc += h;
+          var lab = el("span", "sl", name + " (" + pct + ")");
+          col.appendChild(lab);
+          var one = lab.offsetWidth;
+          lab.innerHTML = name + "<br>(" + pct + ")";
+          var two = lab.offsetWidth, th = lab.offsetHeight;
+          if (h >= th + 4 && two <= bw - 8) lab.className = "sl in";
+          else if (h >= 15 && one <= bw - 8) { lab.className = "sl in"; lab.innerHTML = name + " (" + pct + ")"; }
+          else {
+            lab.className = "sl out";
+            if (one <= room) lab.innerHTML = name + " (" + pct + ")";
+            else if (i < cols.length - 1) over = Math.max(over, two - room); else right = Math.max(right, two - room);
+            outs.push({ e: lab, y: mid, h: lab.offsetHeight });
+            return;
+          }
+          if (shade(k) <= 4) lab.classList.add("inv");              // light text on the dark tones
+          lab.style.left = bl + bw / 2 + "px"; lab.style.top = mid + "px";
+        });
+        outs.sort(function (a, b) { return a.y - b.y; });           // beside the bar: push apart, keep within the bar's height
+        outs.forEach(function (p, k) { if (k) p.y = Math.max(p.y, outs[k - 1].y + (outs[k - 1].h + p.h) / 2 + 1); });
+        for (var k = outs.length - 1; k >= 0; k--) {
+          var lim = k < outs.length - 1 ? outs[k + 1].y - (outs[k + 1].h + outs[k].h) / 2 - 1 : base;
+          outs[k].y = Math.min(outs[k].y, lim);
+        }
+        outs.forEach(function (p) { p.e.style.left = bl + bw + 6 + "px"; p.e.style.top = p.y + "px"; });
+      });
+      if (!over && !right) break;
+      if (over) bars.forEach(function (b) { b.style.width = Math.max(24, b.offsetWidth - Math.ceil(over)) + "px"; });
+      if (right) { pad += Math.ceil(right); plot.style.paddingRight = xs.style.paddingRight = 6 + pad + "px"; }
+    }
+  }
+
+  /* ---------- logos sized by visible area: <div class="logo-grid4" data-logo-area="3600"> … <img> …
+     every <img> inside gets width × height ≈ the area (stage px²), so wide and compact marks look the same weight.
+     data-logo-max="190,64" caps width,height (default: 85% × 60% of the image's parent box); trim the margins off logo files first.
+     <img data-optical="0.8"> scales one logo's area when it still looks too heavy or light ---------- */
+  function renderLogoAreas() {
+    each("[data-logo-area]", function (host) {
+      var area = parseFloat(host.getAttribute("data-logo-area")), cap = (host.getAttribute("data-logo-max") || "").split(",").map(parseFloat);
+      host.querySelectorAll("img").forEach(function (img) {
+        function size() {
+          if (!img.naturalWidth) return;
+          var r = img.naturalWidth / img.naturalHeight, box = img.parentElement;
+          var mw = cap[0] || box.clientWidth * 0.85, mh = cap[1] || box.clientHeight * 0.6;
+          var h = Math.min(Math.sqrt(area * (parseFloat(img.getAttribute("data-optical")) || 1) / r), mh, mw / r);
+          img.style.cssText += ";max-width:none;max-height:none;width:" + (h * r).toFixed(1) + "px;height:" + h.toFixed(1) + "px";
+        }
+        if (img.complete) size(); else img.addEventListener("load", size);
+      });
     });
   }
 
@@ -638,7 +710,7 @@
     buildChrome();
     shader(document.getElementById("bg"));
     renderBestSellers(); renderBars(); renderLines(); renderStacks(); renderDonuts(); renderTreemaps(); setupPlayers();
-    fontsReady().then(renderCollage);   // the collage scales to its box, which text above it (web fonts) can still move
+    fontsReady().then(function () { renderCollage(); renderLogoAreas(); });   // both size to their box, which text above it (web fonts) can still move
     slides = Array.prototype.slice.call(deck.querySelectorAll(":scope > .slide"));
     var dots = document.getElementById("dots"), prev = null;
     slides.forEach(function (s, k) {
