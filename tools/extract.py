@@ -7,8 +7,12 @@ usage: python extract.py <file.pptx> [--deck DIR] [--prefix SUBDIR] [--manifest 
 Writes
   manifest                                    every slide's shapes (text, pictures, videos, tables) with
                                               position and size in pt, plus the speaker notes
-  presentation\\assets\\img\\[prefix\\]sNN\\*.webp  the slide pictures, longest side ≤ 1600 px
+  presentation\\assets\\img\\[prefix\\]sNN\\*.webp  the slide pictures, longest side ≤ 1600 px, with the PPT crop
+                                              applied (file name -cK when the same picture is cropped
+                                              differently; the crop is in the manifest as "crop": [l, t, r, b]
+                                              fractions). SVG-only pictures are copied as .svg
   presentation\\reports\\*.html                 HTML files embedded in the PPT (OLE packages)
+Pictures that cannot be read (broken, or EMF/WMF) are skipped and listed at the end.
 The PPT is only read. If PowerPoint has it open, close it first (the file is locked).
 """
 import argparse
@@ -20,13 +24,15 @@ import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from PIL import Image
+from PIL import Image, ImageFile
 
 import deckutil  # noqa: F401  (utf-8 console output)
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True   # a PPT can hold a cut-off PNG; show what is there instead of stopping
 P = "{http://schemas.openxmlformats.org/presentationml/2006/main}"
 A = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
 R = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+SVG = "{http://schemas.microsoft.com/office/drawing/2016/SVG/main}svgBlip"
 EMU = 12700.0
 MAX_SIDE = 1600
 
@@ -96,23 +102,39 @@ def walk(tree, sr, tf, out):
         elif tag == "pic":
             b = ch.find(".//" + A + "blip")
             tgt = sr.get(b.get(R + "embed") if b is not None else None, ("", ""))[1]
+            if not tgt:                                   # SVG-only picture: no bitmap fallback
+                s = ch.find(".//" + SVG)
+                tgt = sr.get(s.get(R + "embed") if s is not None else None, ("", ""))[1]
             vid = None
             for e in ch.iter():
                 if e.tag.endswith("}media") or e.tag.endswith("videoFile"):
                     vid = sr.get(e.get(R + "embed") or e.get(R + "link"), ("", ""))[1] or vid
             if tgt:
-                out.append(dict(item, kind="video" if vid else "pic", media=tgt, video=vid))
+                sr_ = ch.find(".//" + A + "srcRect")        # crop, 1/1000 % per side; negative = padding, ignored
+                crop = [max(0, int(sr_.get(k, 0))) / 100000 if sr_ is not None else 0 for k in "ltrb"]
+                out.append(dict(item, kind="video" if vid else "pic", media=tgt, video=vid,
+                                **({"crop": crop} if any(crop) else {})))
         else:
             tbl = ch.find(".//" + A + "tbl")
             if tbl is not None:
                 out.append(dict(item, kind="table", rows=[[" ".join(paras(tc)) for tc in tr.iter(A + "tc")] for tr in tbl.iter(A + "tr")]))
 
 
-def save_image(ppt, src, dst_noext):
-    if posixpath.splitext(src)[1].lower() in (".emf", ".wmf", ".wdp", ".gif", ".svg"):
+def save_image(ppt, src, dst_noext, crop=None):
+    """Returns (path, (w, h)), or None for a format the browser cannot show. Raises on a broken image."""
+    ext = posixpath.splitext(src)[1].lower()
+    if ext == ".svg":
+        path = dst_noext.with_suffix(".svg")
+        path.write_bytes(ppt.read(src))
+        return path, None
+    if ext in (".emf", ".wmf", ".wdp", ".gif"):
         return None
     im = Image.open(io.BytesIO(ppt.read(src)))
     im.load()
+    if crop:
+        l, t, r, b = crop
+        W, H = im.size
+        im = im.crop((round(l * W), round(t * H), round(W * (1 - r)), round(H * (1 - b))))
     if im.mode not in ("RGB", "RGBA"):
         im = im.convert("RGBA" if "A" in im.getbands() or im.mode == "P" else "RGB")
     if im.mode == "RGBA" and im.getchannel("A").getextrema()[0] == 255:   # alpha that hides nothing
@@ -174,7 +196,7 @@ def main():
     page_w, page_h = int(size.get("cx")) / EMU, int(size.get("cy")) / EMU
     prels = ppt.rels("ppt/presentation.xml")
     order = [prels[s.get(R + "id")][1] for s in pres_xml.find(P + "sldIdLst")]
-    slides, saved = [], {}
+    slides, saved, skipped = [], {}, []
     for i, part in enumerate(order, 1):
         sr = ppt.rels(part)
         shapes = []
@@ -190,14 +212,24 @@ def main():
         for sh in shapes:
             sh["offcanvas"] = sh["x"] + sh["w"] < 0 or sh["y"] + sh["h"] < 0 or sh["x"] > page_w or sh["y"] > page_h or sh["w"] < 2
             if sh.get("kind") in ("pic", "video") and not sh["offcanvas"]:
-                src = sh["media"]
-                if (i, src) not in saved:
+                src, crop = sh["media"], tuple(sh.get("crop", ()))
+                key = (i, src, crop)
+                if key not in saved:
                     folder.mkdir(parents=True, exist_ok=True)
-                    saved[(i, src)] = save_image(ppt, src, folder / posixpath.splitext(posixpath.basename(src))[0])
-                r = saved[(i, src)]
+                    stem = posixpath.splitext(posixpath.basename(src))[0]
+                    k = sum(1 for s in saved if s[:2] == (i, src))   # same picture, other crop: -c1, -c2 …
+                    try:
+                        saved[key] = save_image(ppt, src, folder / (stem + ("-c%d" % k if k else "")), crop)
+                        if saved[key] is None:
+                            skipped.append("slide %d %s: format not supported" % (i, src))
+                    except Exception as e:                # broken picture: skip it, keep going
+                        saved[key] = None
+                        skipped.append("slide %d %s: %s" % (i, src, e))
+                r = saved[key]
                 if r:
                     sh["file"] = r[0].relative_to(pres).as_posix()
-                    sh["px"] = list(r[1])
+                    if r[1]:
+                        sh["px"] = list(r[1])
         slides.append({"n": i, "shapes": shapes, "notes": notes})
         print("slide %d: %d shapes, %d note paragraphs" % (i, len(shapes), len(notes)))
     reports = []
@@ -213,6 +245,10 @@ def main():
     manifest.parent.mkdir(parents=True, exist_ok=True)
     manifest.write_text(json.dumps({"page": [page_w, page_h], "slides": slides, "reports": reports}, ensure_ascii=False, indent=1), encoding="utf-8")
     print("manifest →", manifest)
+    if skipped:
+        print("\nSKIPPED %d pictures (not in presentation\\ — take them from a slide render or ask for the original):" % len(skipped))
+        for s in skipped:
+            print("  " + s)
 
 
 if __name__ == "__main__":
