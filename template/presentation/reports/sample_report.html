@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monthly Sales Report · September 2026 (sample)</title>
+<style>
+  :root{--ink:#1C1C1E;--body:#3A3A3C;--muted:#6E6E73;--line:#E5E5EA;--tile:#F2F2F4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI","Malgun Gothic",sans-serif;color:var(--ink);background:#F7F7F9}
+  header{background:var(--ink);color:#fff;padding:36px 56px}
+  header small{display:block;font:600 12px Consolas,monospace;letter-spacing:.2em;color:#AEAEB2}
+  header h1{font-size:34px;margin-top:8px}
+  header p{color:#D1D1D6;margin-top:6px}
+  main{padding:32px 56px 56px;display:grid;gap:24px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .kpi small{font:600 11px Consolas,monospace;letter-spacing:.14em;color:var(--muted)}
+  .kpi b{display:block;font-size:30px;margin-top:6px}
+  .kpi span{font-size:13px;color:var(--muted)}
+  .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px}
+  .box h2{font-size:18px;margin-bottom:14px}
+  .bars{display:flex;align-items:flex-end;gap:14px;height:220px;border-bottom:1px solid var(--line)}
+  .bars div{flex:1;background:#C7C7CC;border-radius:6px 6px 0 0;position:relative}
+  .bars div.on{background:var(--ink)}
+  .bars div span{position:absolute;top:-22px;left:0;right:0;text-align:center;font-weight:700;font-size:13px}
+  .axis{display:flex;gap:14px;margin-top:8px}
+  .axis span{flex:1;text-align:center;font:600 12px Consolas,monospace;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+  th{font:600 11px Consolas,monospace;letter-spacing:.1em;color:var(--muted)}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  .two{display:grid;grid-template-columns:1.2fr 1fr;gap:24px}
+  ul{padding-left:18px;line-height:1.7;color:var(--body)}
+</style>
+</head>
+<body>
+<header>
+  <small>SAMPLE REPORT · EXAMPLE DATA</small>
+  <h1>Monthly Sales Report — September 2026</h1>
+  <p>Sample Company · every number on this page is an example.</p>
+</header>
+<main>
+  <div class="kpis">
+    <div class="kpi"><small>SALES</small><b>$4.8M</b><span>+6% vs. August</span></div>
+    <div class="kpi"><small>UNITS</small><b>73,000</b><span>+4% vs. August</span></div>
+    <div class="kpi"><small>SELL-THROUGH</small><b>64%</b><span>target 60%</span></div>
+    <div class="kpi"><small>RETURNS</small><b>3.1%</b><span>August 3.4%</span></div>
+  </div>
+  <div class="two">
+    <div class="box">
+      <h2>Weekly units (thousands)</h2>
+      <div class="bars">
+        <div style="height:58%"><span>15.2</span></div>
+        <div style="height:64%"><span>16.8</span></div>
+        <div style="height:70%"><span>18.3</span></div>
+        <div class="on" style="height:85%"><span>22.4</span></div>
+      </div>
+      <div class="axis"><span>W1</span><span>W2</span><span>W3</span><span>W4</span></div>
+    </div>
+    <div class="box">
+      <h2>This month</h2>
+      <ul>
+        <li>Week 4 sold the most (promotion).</li>
+        <li>Dresses made up 41% of all units.</li>
+        <li>Returns fell for the third month in a row.</li>
+        <li>Linen styles will be re-ordered next month.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box">
+    <h2>Top sellers</h2>
+    <table>
+      <tr><th>STYLE</th><th>PRODUCT</th><th>BRAND</th><th style="text-align:right">UNITS</th><th style="text-align:right">SELL-THROUGH</th></tr>
+      <tr><td>S-1027</td><td>Cotton poplin dress</td><td>Brand B</td><td class="n">9,800</td><td class="n">78%</td></tr>
+      <tr><td>S-1044</td><td>Linen blend shirt</td><td>Brand E</td><td class="n">7,250</td><td class="n">71%</td></tr>
+      <tr><td>S-0991</td><td>Satin jacquard blouse</td><td>Brand F</td><td class="n">6,100</td><td class="n">66%</td></tr>
+      <tr><td>S-1102</td><td>Crepe skirt</td><td>Brand J</td><td class="n">4,900</td><td class="n">59%</td></tr>
+    </table>
+  </div>
+</main>
+</body>
+</html>

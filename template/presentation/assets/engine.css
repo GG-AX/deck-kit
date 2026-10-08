@@ -1,0 +1,304 @@
+/* deck-kit engine — screen fit, bars, overlays and the shared parts (monotone look).
+   Fixed: a deck never edits this file. Its own corrections and token overrides go in assets/deck.css. */
+@font-face{font-family:"Inter";src:url("fonts/inter-var.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("fonts/jetbrains-mono-var.woff2") format("woff2");font-weight:100 800;font-display:swap}
+/* Korean only (Latin keeps coming from Inter, so English decks look exactly as before) */
+@font-face{font-family:"Pretendard";src:url("fonts/PretendardVariable.woff2") format("woff2");font-weight:45 920;font-display:swap;
+  unicode-range:U+1100-11FF,U+3000-303F,U+3130-318F,U+A960-A97F,U+AC00-D7A3,U+D7B0-D7FF,U+FF01-FF60}
+
+/* ---------- theme tokens: the default look. One deck changes them in its deck.css ---------- */
+:root{
+  --key:#1C1C1E;--key2:#48484A;--mid:#8E8E93;--light:#D1D1D6;--fill:#E5E5EA;--tile:#F2F2F4;
+  --night:#0B0B0C;
+  --ink:#111111;--body:#3A3A3C;--muted:#6E6E73;--line:#E5E5EA;--bg:#FAFAFA;
+  --ff:"Inter","Pretendard","Segoe UI",system-ui,sans-serif;--mono:"JetBrains Mono","Pretendard",Consolas,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);--grow:cubic-bezier(.2,.8,.25,1);
+  --card-shadow:0 1px 0 rgba(0,0,0,.04),0 8px 32px rgba(0,0,0,.06);
+  /* moving background (shader), dark → light */
+  --bg-deep:#0B0B0C;--bg-mid:#2C2C2E;--bg-ribbon:#8E8E93;--bg-glow:#C7C7CC;
+  /* chart tones, darkest first: treemap tiles (1–5 get white text), donut parts without a color */
+  --tone-1:#1C1C1E;--tone-2:#3A3A3C;--tone-3:#5A5A5E;--tone-4:#6E6E73;--tone-5:#8E8E93;
+  --tone-6:#B8B8BC;--tone-7:#CFCFD3;--tone-8:#DCDCE0;--tone-9:#E6E6EA;
+  --track:var(--fill);       /* donut ring behind the parts */
+  --photo-bg:var(--tile);    /* behind product photos */
+  --panel-alt:#E8E8EB;       /* collage panel "bg":"alt" */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--night);color:var(--ink);font-family:var(--ff);overflow:hidden;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word}
+img,video{display:block;max-width:100%}
+
+/* ---------- stage ---------- */
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.scrim{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 40%,rgba(0,0,0,.08),rgba(0,0,0,.5))}
+.stage{position:fixed;inset:0;z-index:2;display:grid;place-items:center}
+.deck{position:relative;width:1280px;height:720px;transform-origin:center;flex:none}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transform:translateY(10px) scale(.99);transition:opacity .5s ease,transform .5s ease,visibility .5s}
+.slide.active{opacity:1;visibility:visible;transform:none}
+/* light slides sit on a white panel (no backdrop blur: re-blurring the moving background dropped frames on laptops) */
+.slide:not(.dark)::before{content:"";position:absolute;inset:0;background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.6);border-radius:22px;box-shadow:0 30px 90px rgba(0,0,0,.45)}
+.slide.dark{color:#fff}
+
+.reveal{opacity:0}
+.slide.active .reveal{animation:rise .6s var(--ease) both;animation-delay:calc(var(--i,0)*70ms + 120ms)}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* section kicker + content area of a light slide */
+.band{position:absolute;left:56px;right:56px;top:34px;display:flex;align-items:center;justify-content:space-between;z-index:1}
+.band .sec{font:600 12px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--mid)}
+.page{position:absolute;left:56px;right:56px;top:58px;bottom:40px;display:flex;flex-direction:column;z-index:1}
+.foot{position:absolute;left:56px;bottom:16px;font:600 9.5px var(--mono);letter-spacing:.14em;color:var(--mid);text-transform:uppercase;z-index:1}
+
+/* ---------- chrome (built by engine.js) ---------- */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:12px;padding:12px 22px;color:#fff;pointer-events:none}
+.topbar img{height:22px;filter:brightness(0) invert(1);opacity:.92}
+.topbar .div{width:1px;height:16px;background:rgba(255,255,255,.3)}
+.topbar .t{font-size:12px;font-weight:600;color:rgba(255,255,255,.82);letter-spacing:.01em}
+.topbar .chap{margin-left:auto;font:600 11px/1 var(--mono);letter-spacing:.18em;color:var(--light);text-transform:uppercase}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--light);z-index:6;transition:width .4s var(--ease)}
+.bar-bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px;color:rgba(255,255,255,.75);font:500 12px var(--mono);letter-spacing:.1em}
+.bar-bottom button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:5px 14px;font:600 11px var(--mono);letter-spacing:.08em;cursor:pointer}
+.bar-bottom button:hover{background:rgba(255,255,255,.18)}
+.dots{display:flex;gap:5px;align-items:center}
+.dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);transition:.3s;cursor:pointer}
+.dots i.on{background:#fff;transform:scale(1.35)}
+.dots i.ch{width:2px;height:10px;border-radius:1px;background:rgba(255,255,255,.4);margin:0 3px}
+.hint{position:fixed;left:16px;bottom:12px;z-index:5;font:500 10.5px var(--mono);color:rgba(255,255,255,.4);letter-spacing:.06em}
+@media (max-width:1900px){.hint{display:none}}
+
+/* ---------- typography ---------- */
+h1{font-size:58px;font-weight:800;letter-spacing:-1.5px;line-height:1.02}
+h3{font-size:18px;font-weight:800;color:var(--ink)}
+.title{font-size:30px;font-weight:800;letter-spacing:-.6px;line-height:1.12;color:var(--key);margin-bottom:6px}
+.sub{font-size:16px;color:var(--muted);margin-top:4px;font-weight:500}
+.label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.cat{font:700 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--key)}
+p{font-size:17px;line-height:1.55;color:var(--body)}
+
+/* ---------- cards ---------- */
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--card-shadow)}
+.rule{background:#fff;border:1px solid var(--line);border-top:4px solid var(--key);border-radius:14px;padding:16px 20px;box-shadow:var(--card-shadow)}
+.hl{background:var(--tile);border-left:3px solid var(--key);border-radius:8px;padding:12px 14px;font:800 18px/1.25 var(--ff);color:var(--key)}
+.concl{background:var(--key);color:var(--tile);border-radius:14px;padding:16px 22px;display:flex;gap:24px;align-items:center}
+.concl b{font:800 20px/1.1 var(--ff);letter-spacing:.02em;color:#fff;white-space:nowrap}
+.concl span{font:600 16.5px/1.4 var(--ff)}
+.chip{display:inline-flex;align-items:center;background:var(--tile);color:var(--key);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700}
+.tag{display:inline-block;background:var(--key);color:#fff;border-radius:5px;padding:3px 8px;font:700 10px var(--mono);letter-spacing:.06em}
+.grid{display:grid;gap:16px}
+ul.list{list-style:none;display:flex;flex-direction:column;gap:9px}
+ul.list li{position:relative;padding-left:16px;font-size:16px;line-height:1.4;color:var(--body)}
+ul.list li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:2px;background:var(--mid)}
+.src{position:absolute;right:8px;bottom:6px;font:600 10.5px var(--ff);color:var(--muted);background:rgba(255,255,255,.92);padding:2px 7px;border-radius:5px}
+.figure{position:relative;border:1px solid var(--line);background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--card-shadow)}
+.figure img{width:100%;height:100%;object-fit:contain}
+[data-count]{font-variant-numeric:tabular-nums;display:inline-block;min-width:4.4ch;text-align:right}   /* count-up never reflows */
+
+/* flow chips: 01 → 02 → 03 */
+.flow{display:flex;align-items:stretch;gap:8px}
+.flow .st{flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 12px;box-shadow:var(--card-shadow)}
+.flow .st .n{font:700 11px var(--mono);color:var(--muted);letter-spacing:.1em}
+.flow .st b{display:block;font-size:15px;margin-top:4px;color:var(--ink)}
+.flow .st span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.3}
+.flow .ar{align-self:center;color:var(--mid);font-weight:800}
+
+/* step indicator: 1 · RAW → 2 · OUTPUT → 3 · REPORT */
+.stepline{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.stepline span{font:700 10.5px var(--mono);letter-spacing:.1em;padding:4px 9px;border-radius:999px;background:var(--tile);color:var(--mid)}
+.stepline span.on{background:var(--key);color:#fff}
+
+/* ---------- title / divider / closing / video ---------- */
+.title-wrap{position:absolute;inset:0;display:grid;grid-template-columns:1.1fr 1fr}
+.title-wrap .l{padding:90px 0 60px 96px;display:flex;flex-direction:column;justify-content:center}
+.title-wrap .logo{height:64px;width:auto;align-self:flex-start;filter:brightness(0) invert(1);margin-bottom:34px}
+.title-wrap .co{font:700 14px var(--mono);letter-spacing:.32em;color:var(--light)}
+.title-wrap h1{font-size:88px;margin-top:10px}
+.title-wrap .date{margin-top:26px;display:inline-flex;align-self:flex-start;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 18px;font-weight:700;font-size:15px}
+.title-wrap .conf{margin-top:56px;max-width:560px;font-size:11px;line-height:1.5;color:rgba(255,255,255,.55)}
+.title-wrap .r{position:relative;margin:40px 40px 40px 0;border-radius:18px;overflow:hidden}
+.title-wrap .r img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(.2)}
+
+.divider{position:absolute;inset:0;display:grid;grid-template-columns:1.2fr 1fr;align-items:center;padding:0 96px;gap:60px}
+.divider .big{font:800 190px/0.9 var(--ff);letter-spacing:-8px;color:transparent;-webkit-text-stroke:2px color-mix(in srgb,var(--light) 80%,transparent)}
+.divider h1{font-size:64px;margin-top:14px}
+.agenda{display:flex;flex-direction:column;gap:12px}
+.agenda .it{display:flex;gap:18px;align-items:baseline;padding:16px 20px;border-radius:14px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.45)}
+.agenda .it b{font:700 14px var(--mono);letter-spacing:.12em}
+.agenda .it span{font-size:20px;font-weight:700;letter-spacing:.02em}
+.agenda .it.on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.55);color:#fff}
+
+.video-full{position:absolute;inset:44px 40px 50px;display:flex;flex-direction:column;gap:12px}
+.video-full .vt{display:flex;align-items:baseline;gap:16px}
+.video-full .vt .label{color:var(--light)!important;font-family:var(--mono)}
+.vbox{position:relative;flex:1;min-height:0;background:#000;border-radius:14px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.5)}
+.vbox video{width:100%;height:100%;object-fit:contain}
+.vbox .play{position:absolute;inset:0;display:grid;place-items:center;cursor:pointer;background:rgba(0,0,0,.2);transition:opacity .25s}
+.vbox .play span{width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.vbox .play span::before{content:"";margin-left:8px;border-left:28px solid var(--key);border-top:17px solid transparent;border-bottom:17px solid transparent}
+.vbox .play small{position:absolute;bottom:18px;left:0;right:0;text-align:center;font:600 11px var(--mono);letter-spacing:.16em;color:rgba(255,255,255,.85)}
+.vbox.playing .play{opacity:0;pointer-events:none}
+
+.closing{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.closing img.logo{height:70px;filter:brightness(0) invert(1);margin-bottom:30px}
+.closing h1{font-size:76px}
+
+/* ---------- charts ---------- */
+/* vertical bars (data-bars, see engine.js): .fc / .fc2 = highlighted (e.g. forecast) bars, .anno = a note placed by left/top */
+.vbars{position:relative;display:flex;align-items:flex-end;gap:18px;flex:1;min-height:200px;padding:0 6px;border-bottom:1px solid var(--line)}
+.vbars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.vbars .bar{width:100%;max-width:58px;border-radius:7px 7px 0 0;background:var(--light);height:var(--h);transform-origin:bottom;transform:scaleY(0)}
+.vbars .b.fc .bar{background:var(--key2)}
+.vbars .b.fc2 .bar{background:var(--key)}
+.vbars .v{font:800 17px var(--ff);color:var(--key);margin-bottom:6px;opacity:0}
+.vbars-x{display:flex;gap:18px;padding:8px 6px 0}
+.vbars-x span{flex:1;text-align:center;font:600 11.5px var(--mono);color:var(--muted)}
+.slide.active .vbars .bar{animation:growy .9s var(--grow) both;animation-delay:calc(var(--d,0)*90ms + 300ms)}
+.slide.active .vbars .v{animation:fade .4s ease both;animation-delay:calc(var(--d,0)*90ms + 900ms)}
+.anno{position:absolute;font:700 13px var(--mono);letter-spacing:.06em;color:var(--key2);white-space:nowrap}
+@keyframes growy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes fade{to{opacity:1}}
+
+/* legend of line / stacked charts (built by engine.js) */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:flex-end;font:600 11px var(--mono);letter-spacing:.06em;color:var(--muted);margin-bottom:10px}
+.legend i{display:inline-block;width:16px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;background:var(--c)}
+.legend.sq i{width:10px;height:10px;border-radius:3px}
+
+/* line chart (data-line, see engine.js): the line draws left to right, then dots and end values appear */
+.lc{flex:1;min-height:200px;display:flex;flex-direction:column}
+.lc-plot{position:relative;flex:1;min-height:0;border-bottom:1px solid var(--line)}
+.lc-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;clip-path:inset(0 100% 0 0)}
+.lc-line{fill:none;stroke:var(--c);stroke-width:3;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.lc-dot{position:absolute;width:10px;height:10px;border-radius:50%;background:#fff;border:2.5px solid var(--c);transform:translate(-50%,-50%);opacity:0}
+.lc-end{position:absolute;transform:translate(-50%,-170%);font:800 16px var(--ff);color:var(--key);white-space:nowrap;opacity:0}
+.lc-end.lo{transform:translate(-50%,60%)}
+.lc-x{position:relative;height:26px}
+.lc-x span{position:absolute;top:8px;transform:translateX(-50%);font:600 11.5px var(--mono);color:var(--muted);white-space:nowrap}
+.slide.active .lc-plot svg{animation:lcDraw 1.2s var(--grow) both;animation-delay:.3s}
+.slide.active .lc-dot,.slide.active .lc-end{animation:fade .35s ease both;animation-delay:calc(var(--d,0)*70ms + 400ms)}
+@keyframes lcDraw{to{clip-path:inset(0 0 0 0)}}
+
+/* stacked bars (data-stack, see engine.js) */
+.stack{flex:1;min-height:200px;display:flex;flex-direction:column}
+.stack-cols{flex:1;min-height:0;display:flex;align-items:flex-end;gap:18px;padding:0 6px;border-bottom:1px solid var(--line)}
+.stack .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.stack .tot{font:800 17px var(--ff);color:var(--key);margin-bottom:6px;opacity:0}
+.stack .bars{width:100%;max-width:58px;height:var(--h);display:flex;flex-direction:column-reverse;border-radius:7px 7px 0 0;overflow:hidden;transform-origin:bottom;transform:scaleY(0)}
+.stack .bars i{background:var(--c);min-height:0}
+.slide.active .stack .bars{animation:growy .9s var(--grow) both;animation-delay:calc(var(--d,0)*90ms + 300ms)}
+.slide.active .stack .tot{animation:fade .4s ease both;animation-delay:calc(var(--d,0)*90ms + 900ms)}
+
+/* share bars: label above, bar at its true proportion, value at the right */
+.cats{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;margin-top:10px}
+.cr{position:relative;display:grid;grid-template-columns:1fr 64px;grid-template-rows:auto 34px;column-gap:10px;row-gap:5px;align-items:center}
+.cr .cl{grid-column:1 / -1;font:800 12.5px var(--ff);letter-spacing:.08em;color:var(--key)}
+.cr .ct{height:34px;background:var(--tile);border-radius:6px;overflow:hidden}
+.cr .cf{display:block;height:100%;width:var(--w);border-radius:6px;background:var(--c);transform-origin:left;transform:scaleX(0)}
+.cr .cv{margin:0;padding:0;font:800 22px var(--ff);color:var(--key);font-variant-numeric:tabular-nums;align-self:center;text-align:right}
+.slide.active .cr .cf{animation:growx .9s var(--grow) both;animation-delay:calc(var(--d,0)*90ms + 350ms)}
+
+/* donut: data-donut='[["name",value,"color","logo"?],…]' */
+.donut{position:relative;width:190px;height:190px;flex:none}
+.donut svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.donut circle{fill:none;stroke-width:15}
+.donut .seg{stroke-dasharray:var(--len) 100;stroke-dashoffset:var(--off);opacity:0}
+.slide.active .donut .seg{animation:dfade .55s ease both;animation-delay:calc(var(--sd,0)*90ms + 350ms)}
+@keyframes dfade{from{opacity:0;stroke-dasharray:0 100}to{opacity:1;stroke-dasharray:var(--len) 100}}
+.dlabels{position:absolute;inset:0;pointer-events:none}
+.dlabels .dl{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap}
+.dlabels .dl img{max-height:20px;max-width:66px;object-fit:contain}
+.dlabels .dl b{font:700 11.5px var(--mono);color:var(--ink)}
+
+/* treemap: data-treemap='[["name",value,"logo"],…]', largest first; darker tile = larger share */
+.tm{position:relative;width:100%;height:100%}
+.tm .tl{position:absolute;border-radius:6px;background:var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow:hidden;opacity:0;transform-origin:center}
+.tm .tl img{display:block;object-fit:contain;filter:brightness(0) opacity(.82)}
+.tm .tl b{font:800 var(--fs,16px)/1 var(--ff);letter-spacing:-.02em;color:var(--key)}
+.tm .tl.inv img{filter:brightness(0) invert(1)}
+.tm .tl.inv b{color:#fff}
+.slide.active .tm .tl{animation:tmIn .6s cubic-bezier(.2,.8,.25,1) both;animation-delay:calc(var(--k)*70ms + 300ms)}
+@keyframes tmIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+
+/* ---------- product cards (data.js bestsellers, data-bs) ---------- */
+.bs-grid{flex:1;min-height:0;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:14px}
+.bs-card{display:grid;grid-template-rows:1fr auto;min-height:0;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--card-shadow);overflow:hidden}
+.bs-card .media{position:relative;min-height:0;background:var(--photo-bg)}
+.bs-card .media > img,.bs-card .media > video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 85%}
+.bs-card .alts{display:flex;gap:6px}
+.bs-card .alts img{height:64px;width:48px;object-fit:cover;object-position:top;background:var(--photo-bg);border:1px solid var(--line);border-radius:6px}
+.bs-card .meta{padding:10px 12px 12px;height:130px;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.bs-card.has-alts .meta{height:202px}
+.bs-card .row1{display:flex;align-items:center;justify-content:space-between;gap:8px;height:26px}
+.bs-card .row1 img{max-height:21px;max-width:86px;object-fit:contain}
+.bs-card .season{font:700 10.5px var(--mono);letter-spacing:.08em;color:var(--key);background:var(--tile);border-radius:5px;padding:3px 7px}
+.bs-card .spec{margin-top:6px;font-size:11.5px;line-height:1.35;color:var(--body);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;flex:none;max-height:62px}
+.bs-card .spec b{display:block;font-size:12px;color:var(--ink);font-weight:700}
+.bs-card .qty{margin-top:auto;font:800 20px var(--ff);color:var(--key);letter-spacing:-.3px;font-variant-numeric:tabular-nums;line-height:1.15}
+.bs-card .qty.two{font-size:14.5px}
+.bs-card .qty small{font:600 10px var(--mono);color:var(--muted);letter-spacing:.06em;margin-left:3px}
+
+/* ---------- collage (data.js portfolio, data-pf + data-collage) ---------- */
+.collage{position:relative;flex:1;min-height:0}
+.col-panel{position:absolute;background:var(--tile);border-radius:14px;overflow:hidden}
+.col-panel.alt{background:var(--panel-alt)}
+.col-panel .cat{position:absolute;left:14px;top:12px;z-index:3}
+.col-panel img,.col-panel video{position:absolute;object-fit:contain}
+.col-panel .fit{inset:0;width:100%;height:100%;object-fit:cover}
+.cat-out{position:absolute;font:700 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--key)}
+
+/* ---------- logo grid 4×4, status as a small caption ---------- */
+.logo-grid4{flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:14px;margin-top:18px}
+.logo-grid4 .lg{position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px 28px;box-shadow:var(--card-shadow)}
+.logo-grid4 .lg img{max-height:40px;max-width:62%;object-fit:contain}
+.logo-grid4 .lg img.tall{max-height:58px}
+.logo-grid4 .lg .note{font:600 11px var(--mono);letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+
+/* ---------- report card: preview + Open Report → report window ---------- */
+.report{flex:1;min-height:0;display:grid;grid-template-columns:1.35fr 1fr;gap:36px;align-items:stretch;padding:6px 0 10px}
+.report .pv{position:relative;align-self:center;height:auto;aspect-ratio:16/10;min-height:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.18);background:#fff}
+.report .pv:has(img[style*="contain"]){align-self:stretch;height:100%;aspect-ratio:auto}
+.report .pv img{width:100%;height:100%;object-fit:cover;object-position:top}
+.report .pv img[style*="contain"]{object-position:center}
+.report .info{align-self:center}
+.report .info h3{font-size:34px;font-weight:800;letter-spacing:-.5px;line-height:1.12;color:var(--ink);margin:10px 0 12px}
+.report .info .label{color:var(--muted)}
+.report .info .meta{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 22px}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--key);color:#fff;border:0;border-radius:999px;padding:13px 24px;font:700 14px var(--ff);cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.btn:hover{background:var(--key2)}
+
+/* ---------- overlays: report window, overview (G) ---------- */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.86);backdrop-filter:blur(6px);display:none;flex-direction:column;padding:18px}
+.overlay.open{display:flex}
+.overlay .ob{display:flex;align-items:center;gap:12px;color:#fff;margin-bottom:10px}
+.overlay .ob b{font-size:15px}
+.overlay .ob .sp{flex:1}
+.overlay .ob a,.overlay .ob button{color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 16px;font:600 12px var(--ff);cursor:pointer;text-decoration:none}
+.overlay iframe{flex:1;width:100%;border:0;border-radius:12px;background:#fff}
+.overlay .loading{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:600 13px var(--mono);letter-spacing:.14em;pointer-events:none}
+.overview{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.94);display:none;padding:40px;overflow:auto}
+.overview.open{display:block}
+.overview .keys{color:rgba(255,255,255,.55);font:500 12px var(--mono);letter-spacing:.06em;margin-bottom:18px}
+.overview .ov{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.overview .tile{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:12px;color:#fff;cursor:pointer;min-height:86px}
+.overview .tile:hover,.overview .tile.on{background:rgba(255,255,255,.18);border-color:#fff}
+.overview .tile b{font:700 11px var(--mono);color:var(--light)}
+.overview .tile div{font-size:13px;font-weight:600;margin-top:6px;line-height:1.3}
+.overview .tile span{display:block;font:600 9.5px var(--mono);color:rgba(255,255,255,.45);margin-top:6px;letter-spacing:.1em}
+
+/* ---------- density per slide: <section class="slide roomy"> / "slide compact" ---------- */
+.roomy ul.list{gap:13px}
+.roomy ul.list li{font-size:19px;line-height:1.38}
+.roomy ul.list li::before{top:10px}
+.roomy p{font-size:19px;line-height:1.5}
+.roomy .title{font-size:28px}
+.compact ul.list{gap:4px}
+.compact ul.list li{font-size:14.5px;line-height:1.32}
+.compact ul.list li::before{top:7px}
+
+/* ---------- screenshots (?static): everything shown at its final state ---------- */
+html.static .slide,html.static .dots i{transition:none}
+html.static .reveal,html.static .vbars .v{opacity:1;animation:none!important}
+html.static .vbars .bar,html.static .cr .cf{transform:none;animation:none!important}
+html.static .donut .seg{opacity:1;animation:none!important}
+html.static .tm .tl{opacity:1;animation:none!important}
+html.static .lc-plot svg{clip-path:none;animation:none!important}
+html.static .lc-dot,html.static .lc-end,html.static .stack .tot{opacity:1;animation:none!important}
+html.static .stack .bars{transform:none;animation:none!important}

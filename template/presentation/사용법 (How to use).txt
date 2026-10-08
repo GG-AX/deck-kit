@@ -1,0 +1,158 @@
+<덱 이름> 발표 자료 사용법
+====================================
+
+1. 발표 시작
+   "Start Presentation.bat" 파일을 더블클릭하세요.
+   (발표 화면이 열립니다. 스크립트를 저장하려면 꼭 이 파일로 여세요.)
+
+2. 슬라이드 넘기기
+   키보드 → (다음)  ← (이전)   또는 화면 아래 NEXT / PREV 버튼
+   F : 전체 화면     G : 전체 슬라이드 보기     Enter : 영상 재생
+
+3. 발표자 스크립트 보기
+   P 키를 누르면 스크립트 창이 따로 열립니다.
+
+4. 스크립트 고치기
+   스크립트 창의 글자를 클릭해서 그대로 고치면 됩니다. (빈 줄 = 새 문단)
+   다 고친 뒤 창 아래의 밝은 색 [Save notes] 버튼을 누르세요. (Ctrl + S 도 됩니다)
+   "✓ Saved" 가 보이면 저장된 것입니다.
+
+
+발표 전 PC 설정 (영상이 끊기지 않게)
+====================================
+큰 화면(TV·프로젝터)에 연결해서 발표할 때 영상이 끊기면 아래를 확인하세요.
+발표 전에 한 번만 해 두면 됩니다.
+
+1. 노트북 전원 연결
+   - 충전기를 꽂아 주세요. 배터리로만 쓰면 노트북이 성능을 낮춥니다.
+
+2. Windows 전원 모드 → "최고 성능"
+   - [시작] → [설정] → [시스템] → [전원 및 배터리] → [전원 모드] → "최고 성능"
+     (Windows 10: 화면 오른쪽 아래 배터리 아이콘 클릭 → 막대를 오른쪽 끝 "최고 성능"으로)
+
+   ※ "Start Presentation.bat"은 PC의 기본 브라우저로 열립니다.
+     쓰는 브라우저(Edge 또는 Chrome)에 맞춰 3·4번을 해 주세요.
+
+3. 절전 기능 끄기
+   [Edge]   오른쪽 위 [⋯] → [설정] → [시스템 및 성능] → "효율성 모드" 끄기
+   [Chrome] 오른쪽 위 [⋮] → [설정] → [성능] → "에너지 절약 모드" 끄기
+   - 켜져 있으면 화면이 1초에 30번만 그려져 움직임이 덜 부드럽습니다.
+
+4. 그래픽 가속 켜기
+   [Edge]   [⋯] → [설정] → [시스템 및 성능] → "가능한 경우 그래픽 가속 사용" 켜기
+   [Chrome] [⋮] → [설정] → [시스템] → "가능한 경우 그래픽 가속 사용" 켜기
+   - 바꿨다면 브라우저를 완전히 닫았다가 다시 여세요. (Chrome은 [다시 실행] 버튼이 나옵니다)
+
+5. 큰 화면 연결 방식
+   - 키보드 [Windows 키 + P] → "두 번째 화면만" 또는 "확장"을 권합니다.
+   - "복제"를 쓸 때 노트북과 큰 화면의 해상도가 서로 다르면 끊길 수 있습니다.
+   - 큰 화면 해상도는 1920 × 1080(Full HD)이면 충분합니다.
+
+6. 다른 프로그램 닫기
+   - 화상회의(Teams·Zoom), 동영상, 클라우드 동기화 등 무거운 프로그램은 발표 중 닫아 두세요.
+
+7. 확인 방법 (선택)
+   - 발표 화면에서 D 키를 누르면 오른쪽 아래에 숫자가 나옵니다.
+     "dropped 앞숫자/뒷숫자" 중 앞숫자가 거의 그대로면 정상,
+     영상이 나오는 동안 1초마다 계속 늘어나면 아직 끊기는 것입니다.
+   - D 키를 한 번 더 누르면 사라집니다.
+
+
+★ 꼭 지켜 주세요 — 폴더는 항상 통째로
+====================================
+
+이 폴더 안의 파일들은 서로 연결되어 있습니다.
+하나라도 빠지거나 이름이 바뀌면 그림·영상이 안 나오거나 스크립트가 저장되지 않습니다.
+
+  폴더 안에 반드시 함께 있어야 하는 것
+    - 발표 화면 파일(.html) 하나                    (발표 화면)
+    - Start Presentation.bat                        (발표 시작 + 스크립트 저장)
+    - assets 폴더                                   (그림·영상·스크립트·글꼴)
+    - reports 폴더 (있을 때)                         (보고서 화면)
+    - 사용법 (How to use).txt                       (이 파일)
+
+  하지 말아 주세요
+    - 폴더 안의 파일만 골라서 따로 보내기 / 옮기기
+    - assets·reports 폴더 안 파일이나 폴더의 이름 바꾸기
+      (맨 바깥 폴더 이름과 발표 화면 .html의 이름은 바꿔도 괜찮습니다)
+    - 폴더 안 파일 지우기
+    - 이 폴더에 .html 파일을 하나 더 넣기 (Start Presentation.bat은 .html 하나를 찾아 엽니다)
+
+
+다른 분께 보낼 때
+-----------------
+1. 먼저 스크립트를 저장했는지 확인하세요. ("✓ Saved")
+2. 발표 화면과 스크립트 창을 모두 닫으세요.
+3. 폴더 전체를 보내세요.
+   - 용량이 크면 메일 첨부는 어렵습니다.
+     OneDrive 공유 링크, USB, 대용량 파일 전송을 이용하세요.
+   - 압축해서 보낼 때: 폴더에서 마우스 오른쪽 버튼 → [압축(ZIP) 폴더로 보내기]
+     (폴더 "전체"를 압축하세요. 안의 파일 몇 개만 고르면 안 됩니다)
+4. 고친 스크립트는 이 폴더 안에 저장되어 있으므로, 폴더를 보내면 함께 전달됩니다.
+
+받았을 때 / 압축 파일일 때
+--------------------------
+1. ZIP 파일은 먼저 압축을 풀어 주세요.
+   ZIP 파일에서 마우스 오른쪽 버튼 → [압축 풀기] (또는 [모두 압축 풀기])
+   ※ ZIP 파일을 더블클릭해서 안에서 바로 열면 안 됩니다.
+     그림이 안 나오고 스크립트도 저장되지 않습니다.
+2. 압축을 푼 폴더 안의 "Start Presentation.bat"을 더블클릭하세요.
+3. "Windows의 PC 보호" 창이 뜨면 [추가 정보] → [실행]을 누르세요.
+
+다른 위치로 옮길 때
+-------------------
+- 폴더를 통째로 끌어다 놓거나, 잘라내기·붙여넣기 하세요. (바탕화면, 문서, USB 어디든 됩니다)
+- 옮긴 뒤에는 옮긴 곳의 "Start Presentation.bat"으로 여세요.
+
+같은 자료가 두 군데 있을 때 (예: 바탕화면과 다운로드 폴더)
+----------------------------------------------------------
+- 스크립트는 지금 열어 둔 폴더에만 저장됩니다. 두 곳은 서로 따로입니다.
+  (.bat으로 열 때도, 발표 화면 파일을 직접 열 때도 마찬가지입니다)
+- 헷갈리지 않도록 예전 것은 지우고 최신 폴더 하나만 쓰는 것을 권합니다.
+
+다른 발표 자료와 함께 열 때
+---------------------------
+- 바로 저장(.bat)은 한 번에 한 자료만 됩니다. 두 자료를 .bat으로 함께 열면
+  나중에 연 자료만 바로 저장됩니다.
+- 스크립트 창에 "Not saved — another presentation folder was opened later" 가 보이면:
+  열린 창을 모두 닫고, 저장하려는 폴더의 "Start Presentation.bat"으로 다시 여세요.
+
+
+참고
+----
+- 직전에 저장한 스크립트는 assets\notes.prev.js 에 한 번 더 보관됩니다.
+- 발표 화면 파일(.html)을 직접 열어도 됩니다. 이때는 처음 저장할 때 한 번만
+  assets\notes.js 파일을 골라 주세요. (Edge·Chrome. 다른 브라우저는 notes.js가 내려받아지니
+  assets\notes.js 를 그 파일로 바꿔 넣으세요)
+- Windows 전용입니다.
+
+---------------------------------------------------------------
+How to use (English)
+1. Double-click "Start Presentation.bat".
+2. Arrow keys or NEXT/PREV to move. F = full screen, G = overview, Enter = play video.
+3. Press P for the presenter window with the script.
+4. Edit the script there, then click [Save notes] (or Ctrl+S). "✓ Saved" = done.
+
+Before presenting on a big screen (smooth video)
+- Plug in the charger; Windows power mode = "Best performance"
+  (Settings → System → Power & battery → Power mode).
+- The .bat opens your default browser.
+  Edge:   ⋯ → Settings → System and performance → turn OFF "Efficiency mode",
+          turn ON "Use graphics acceleration when available", then restart Edge.
+  Chrome: ⋮ → Settings → Performance → turn OFF "Energy saver";
+          Settings → System → turn ON "Use graphics acceleration when available", then Relaunch.
+- Win + P → "Second screen only" or "Extend" (Duplicate with different resolutions can stutter); 1920×1080 is enough.
+- Close heavy apps (video calls, video players, cloud sync).
+- Check: press D in the deck. If the first number of "dropped a/b" keeps rising while videos play, it still stutters. Press D again to hide.
+
+Keep the folder whole
+- Always share or move the WHOLE folder. Do not take files out, rename or delete files inside assets/reports
+  (renaming the outer folder or the deck .html is fine). Keep a single .html in this folder.
+- Sharing: save the script, close all windows, then send the whole folder
+  (too large for e-mail: use a OneDrive link, USB or a large-file service; or right-click the folder → Send to → Compressed (zipped) folder).
+- Receiving a ZIP: extract it first (right-click → Extract All). Do not open the deck from inside the ZIP.
+- The edited script is stored inside this folder, so it travels with it.
+- Two copies on one PC are separate, whether opened with the .bat or directly.
+- Saving straight from the .bat works for one presentation at a time: if the script window says
+  "another presentation folder was opened later", close everything and open the one you want with its own .bat.
+- Windows only.
