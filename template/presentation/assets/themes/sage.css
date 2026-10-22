@@ -1,0 +1,9 @@
+/* deck-kit theme: Sage — made by the kit's make_themes.py from the monotone tokens in engine.css
+   (same lightness, tinted hue 150). Link it after engine.css, before deck.css. Do not edit by hand. */
+:root{
+  --key:#161E1A;--key2:#3A4C43;--mid:#7B9387;--light:#CAD3CE;--fill:#E1E6E3;--tile:#F0F2F1;
+  --night:#090C0A;--ink:#0E1210;--body:#2E3D36;--muted:#587466;--line:#E1E6E3;--bg:#FAFAFA;
+  --bg-deep:#090C0A;--bg-mid:#232E28;--bg-ribbon:#7B9387;--bg-glow:#BFCAC4;--tone-1:#161E1A;--tone-2:#2E3D36;
+  --tone-3:#485F53;--tone-4:#587466;--tone-5:#7B9387;--tone-6:#ACBBB4;--tone-7:#C7D1CC;--tone-8:#D7DEDA;
+  --tone-9:#E2E7E4;--panel-alt:#E5E9E7;
+}

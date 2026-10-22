@@ -1,0 +1,9 @@
+/* deck-kit theme: Warm neutral — made by the kit's make_themes.py from the monotone tokens in engine.css
+   (same lightness, tinted hue 32). Link it after engine.css, before deck.css. Do not edit by hand. */
+:root{
+  --key:#1F1B17;--key2:#51463A;--mid:#A08A71;--light:#D9D0C6;--fill:#E9E4DF;--tile:#F4F1EE;
+  --night:#0D0B09;--ink:#13100D;--body:#41392F;--muted:#7B6C59;--line:#E9E4DF;--bg:#FAF9F8;
+  --bg-deep:#0D0B09;--bg-mid:#322B24;--bg-ribbon:#A08A71;--bg-glow:#D0C5B9;--tone-1:#1F1B17;--tone-2:#41392F;
+  --tone-3:#655849;--tone-4:#7B6C59;--tone-5:#A08A71;--tone-6:#C4B6A7;--tone-7:#D7CEC4;--tone-8:#E2DBD4;
+  --tone-9:#EAE5E0;--panel-alt:#ECE7E2;
+}

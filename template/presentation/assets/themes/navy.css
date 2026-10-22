@@ -1,0 +1,9 @@
+/* deck-kit theme: Navy — made by the kit's make_themes.py from the monotone tokens in engine.css
+   (same lightness, tinted hue 220). Link it after engine.css, before deck.css. Do not edit by hand. */
+:root{
+  --key:#131A27;--key2:#304162;--mid:#818BA0;--light:#CDD1DA;--fill:#E3E5EA;--tile:#F1F2F5;
+  --night:#080A0F;--ink:#0B0F17;--body:#27344F;--muted:#4A6497;--line:#E3E5EA;--bg:#F9FAFB;
+  --bg-deep:#080A0F;--bg-mid:#1E283C;--bg-ribbon:#818BA0;--bg-glow:#C2C7D1;--tone-1:#131A27;--tone-2:#27344F;
+  --tone-3:#3D527B;--tone-4:#4A6497;--tone-5:#818BA0;--tone-6:#B0B7C4;--tone-7:#CBCFD7;--tone-8:#D9DCE3;
+  --tone-9:#E4E6EB;--panel-alt:#E6E8ED;
+}

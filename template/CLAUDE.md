@@ -1,6 +1,6 @@
 # CLAUDE.md — <덱 이름> 발표 자료
 
-> deck-kit 양식으로 만든 덱 작업 공간이다. 새 덱 폴더로 복사한 뒤 `<덱 이름>`과 맨 아래 "이 덱" 칸을 채운다.
+> deck-kit 양식으로 만든 덱 작업 공간이다.
 > (deck-kit 안 `template\`에 있는 이 파일은 양식일 뿐이다 — 복사된 덱 폴더에서만 적용된다.)
 > deck-kit(작업 순서·부품·도구 = `SKILL.md`, 디자인 원칙 = `DESIGN.md`)은 보통 `%USERPROFILE%\.claude\skills\deck-kit`에 있다.
 

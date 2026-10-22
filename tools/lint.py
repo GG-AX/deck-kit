@@ -4,7 +4,7 @@ usage: python lint.py [deck]
 Checks: HTML tag balance · slide ids (duplicate, invalid) · leftover samples · referenced files exist ·
 notes.js keys vs slides · deck scripts (work\\, tools\\) compile · work\\*.json parse ·
 deck.css rules defined twice (the later one wins) and classes no slide uses · engine identical to the kit ·
-versions\\ backups open (their files still exist) · template placeholders left in CLAUDE.md / session.md / FEEDBACK.md.
+versions\\ backups open (their files still exist) · template placeholders left in CLAUDE.md / session.md / FEEDBACK.md / 사용법 (How to use).txt.
 Exit code 1 when there is an ERR line.
 """
 import json
@@ -127,7 +127,7 @@ dirs = sorted(p.name for p in (root / "versions").glob("v*") if p.is_dir())
 add("Versions", "OK" if dirs == sorted(d for _, d in rows) else "WARN", "folders %s vs README rows %s" % (dirs, [d for _, d in rows]))
 
 # 8. docs
-for f in ("CLAUDE.md", "session.md", "FEEDBACK.md"):
+for f in ("CLAUDE.md", "session.md", "FEEDBACK.md", "presentation/사용법 (How to use).txt"):
     p = root / f
     if p.exists() and any(s in p.read_text(encoding="utf-8") for s in ("<덱 이름>", "(날짜)", "(할 일)")):
         add("Docs", "WARN", "%s: template placeholder left" % f)

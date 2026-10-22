@@ -23,7 +23,10 @@ for _s in (sys.stdout, sys.stderr):
 
 EDGE_PATHS = [r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe",
               r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe",
-              r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe"]
+              r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe",
+              # Mac: Edge if installed, else Chrome (same headless flags)
+              "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+              "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
 SLIDE_RE = re.compile(r'<section\b[^>]*\bclass="(?:[^"]*\s)?slide(?:\s[^"]*)?"', re.I)
 
 
@@ -32,7 +35,7 @@ def find_edge():
         p = os.path.expandvars(p)
         if os.path.isfile(p):
             return p
-    return shutil.which("msedge") or sys.exit("Microsoft Edge was not found (looked in Program Files and PATH).")
+    return shutil.which("msedge") or sys.exit("Microsoft Edge was not found (looked in Program Files, /Applications (Edge, Chrome) and PATH).")
 
 
 def find_ffmpeg():
