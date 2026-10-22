@@ -9,17 +9,17 @@
 
 1. GitHub 계정으로 저장소 초대(`Anton-huh/deck-kit`, 비공개)를 수락한다.
 2. PC에 git과 GitHub CLI를 설치하고 로그인한다(Windows: `winget install Git.Git GitHub.cli`, Mac: `brew install git gh`). 그다음 터미널에서 `gh auth login` → `gh auth setup-git`.
-3. Claude Code에서 차례로 입력한다.
-   - `/plugin marketplace add Anton-huh/deck-kit`
-   - `/plugin install deck-kit@gg-ax`
-4. 자동 업데이트 켜기: `/plugin` → Marketplaces → `gg-ax` → Enable auto-update. 켜 두면 Claude Code를 시작할 때 새 버전을 받는다.
+3. 플러그인 설치
+   - **VS Code**: 입력창에 `/plug` → **Manage plugins** → **Marketplaces** 탭 → 칸에 `Anton-huh/deck-kit` → **Add**. 그다음 **Plugins** 탭에서 `deck-kit`을 찾아 설치한다.
+   - **터미널**(Claude Code CLI): `claude plugin marketplace add Anton-huh/deck-kit` → `claude plugin install deck-kit@gg-ax`
+4. `/reload-plugins`를 입력한 뒤 **`/deck-kit:update`를 한 번** 실행한다. 자동 업데이트가 켜진다(VS Code 화면에는 이 스위치가 없다). 그 뒤로는 Claude Code를 시작할 때 새 버전을 받는다.
 5. 예전에 `%USERPROFILE%\.claude\skills\deck-kit`에 복사해 둔 키트가 있으면 지운다(두 벌이 겹친다).
 
 쓰기:
 
 - 새 발표 자료용 빈 폴더를 만들어 VS Code(또는 Claude Desktop 앱의 Code 탭)에서 연다.
 - Claude Code에 "deck-kit으로 ○○ 발표 자료 만들어줘"라고 하고 원본 자료(PPT·문서·사진)를 준다. `/deck-kit:deck-kit`으로 불러도 된다.
-- 업데이트를 바로 받으려면 `/deck-kit:update`. 받은 뒤 `/reload-plugins`.
+- 업데이트를 바로 받으려면 `/deck-kit:update`(또는 Manage plugins → Plugins 탭 `deck-kit`의 🔄). 받은 뒤 `/reload-plugins`.
 
 도구에 필요한 것: Python 3(`pip install pillow websocket-client`, PPT 추출은 `olefile`, 배경 제거는 `numpy scipy rembg`), Microsoft Edge, 영상 작업은 ffmpeg(`winget install Gyan.FFmpeg`).
 
@@ -34,6 +34,7 @@
 | v1.2 | 2026-10-08 | 엔진 v1.1: 누적 막대 조각 라벨, 로고 면적 맞춤(B1·B2). 견본 `chart-2`·`logos`에 적용, `sample-slides.jpg` 5·6번 갱신 |
 | v1.3 | 2026-10-22 | 덱 3개(Target·Carhartt·Loft) 피드백 1차 반영. 테마 3개(`assets/themes/` navy·warm·sage, 미리보기 `sample-themes.jpg`). DESIGN: 여백·위계, 사진 자르기, 덱 전체 통일, 원본 대조, 지도, 강조색·테마 규칙. SKILL: 자체 검수 목록 보강, `shots.py`는 PowerShell에서, 영상·HTML 원본, DESIGN과 다른 제안 금지, 근거 경로 먼저. 양식 CLAUDE.md 안내문 수정, `lint.py`가 사용법 txt도 검사, 도구가 Mac의 Edge·Chrome도 찾음. 엔진 v1.2 |
 | v1.3.1 | 2026-10-22 | Claude Code 플러그인으로 배포(GitHub `Anton-huh/deck-kit`, 마켓플레이스 `gg-ax`). 설치는 위 "설치", 업데이트는 자동 또는 `/deck-kit:update`. 버전은 이제 3자리(`.claude-plugin/plugin.json`의 `version`과 같게) |
+| v1.3.2 | 2026-10-22 | 설치 안내를 VS Code 화면(Manage plugins) 기준으로. `/deck-kit:update`가 자동 업데이트도 켠다(VS Code 화면에는 스위치가 없음) |
 
 ## 엔진 버전 기록
 
