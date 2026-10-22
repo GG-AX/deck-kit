@@ -7,11 +7,11 @@
 
 처음 한 번:
 
-1. GitHub 계정으로 저장소 초대(`Anton-huh/deck-kit`, 비공개)를 수락한다.
+1. GitHub 계정으로 조직 `GG-AX` 초대를 수락한다(저장소 `GG-AX/deck-kit`, 비공개).
 2. PC에 git과 GitHub CLI를 설치하고 로그인한다(Windows: `winget install Git.Git GitHub.cli`, Mac: `brew install git gh`). 그다음 터미널에서 `gh auth login` → `gh auth setup-git`.
 3. 플러그인 설치
-   - **VS Code**: 입력창에 `/plug` → **Manage plugins** → **Marketplaces** 탭 → 칸에 `Anton-huh/deck-kit` → **Add**. 그다음 **Plugins** 탭에서 `deck-kit`을 찾아 설치한다.
-   - **터미널**(Claude Code CLI): `claude plugin marketplace add Anton-huh/deck-kit` → `claude plugin install deck-kit@gg-ax`
+   - **VS Code**: 입력창에 `/plug` → **Manage plugins** → **Marketplaces** 탭 → 칸에 `GG-AX/deck-kit` → **Add**. 그다음 **Plugins** 탭에서 `deck-kit`을 찾아 설치한다.
+   - **터미널**(Claude Code CLI): `claude plugin marketplace add GG-AX/deck-kit` → `claude plugin install deck-kit@gg-ax`
 4. `/reload-plugins`를 입력한 뒤 **`/deck-kit:update`를 한 번** 실행한다. 자동 업데이트가 켜진다(VS Code 화면에는 이 스위치가 없다). 그 뒤로는 Claude Code를 시작할 때 새 버전을 받는다.
 5. 예전에 `%USERPROFILE%\.claude\skills\deck-kit`에 복사해 둔 키트가 있으면 지운다(두 벌이 겹친다).
 
@@ -35,6 +35,7 @@
 | v1.3 | 2026-10-22 | 덱 3개(Target·Carhartt·Loft) 피드백 1차 반영. 테마 3개(`assets/themes/` navy·warm·sage, 미리보기 `sample-themes.jpg`). DESIGN: 여백·위계, 사진 자르기, 덱 전체 통일, 원본 대조, 지도, 강조색·테마 규칙. SKILL: 자체 검수 목록 보강, `shots.py`는 PowerShell에서, 영상·HTML 원본, DESIGN과 다른 제안 금지, 근거 경로 먼저. 양식 CLAUDE.md 안내문 수정, `lint.py`가 사용법 txt도 검사, 도구가 Mac의 Edge·Chrome도 찾음. 엔진 v1.2 |
 | v1.3.1 | 2026-10-22 | Claude Code 플러그인으로 배포(GitHub `Anton-huh/deck-kit`, 마켓플레이스 `gg-ax`). 설치는 위 "설치", 업데이트는 자동 또는 `/deck-kit:update`. 버전은 이제 3자리(`.claude-plugin/plugin.json`의 `version`과 같게) |
 | v1.3.2 | 2026-10-22 | 설치 안내를 VS Code 화면(Manage plugins) 기준으로. `/deck-kit:update`가 자동 업데이트도 켠다(VS Code 화면에는 스위치가 없음) |
+| v1.3.3 | 2026-10-22 | 저장소를 회사 조직으로 옮김: `GG-AX/deck-kit`. 이미 `Anton-huh/deck-kit`으로 설치했으면 마켓플레이스를 지우고 새 주소로 다시 추가한다 |
 
 ## 엔진 버전 기록
 
