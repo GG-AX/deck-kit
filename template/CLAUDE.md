@@ -2,7 +2,7 @@
 
 > deck-kit 양식으로 만든 덱 작업 공간이다.
 > (deck-kit 안 `template\`에 있는 이 파일은 양식일 뿐이다 — 복사된 덱 폴더에서만 적용된다.)
-> deck-kit(작업 순서·부품·도구 = `SKILL.md`, 디자인 원칙 = `DESIGN.md`)은 보통 `%USERPROFILE%\.claude\skills\deck-kit`에 있다.
+> deck-kit(작업 순서·부품·도구 = `SKILL.md`, 디자인 원칙 = `DESIGN.md`)은 Claude Code 플러그인이다. `/deck-kit:deck-kit`로 불러오면 키트 경로가 나온다.
 
 ## 세션 규칙 (필수)
 

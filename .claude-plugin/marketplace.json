@@ -1,0 +1,8 @@
+{
+  "name": "gg-ax",
+  "owner": { "name": "GG AX Team" },
+  "description": "GG AX 팀 사내 플러그인",
+  "plugins": [
+    { "name": "deck-kit", "source": "./", "description": "HTML 발표 덱 키트" }
+  ]
+}
