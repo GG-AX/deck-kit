@@ -359,11 +359,14 @@ html.static .stack .bars{transform:none;animation:none!important}
 .tl-row i{color:var(--mid);font-style:normal;font-weight:800}
 /* trend arrow over a bar chart: svg.trend (viewBox 0 0 100 100, preserveAspectRatio none) in % of the chart, drawn with the bars */
 .vbars .trend{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-.vbars .trend path{fill:none;stroke:var(--key2);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-dasharray:400;stroke-dashoffset:400}
-.slide.active .vbars .trend path{animation:trendDraw 1.05s var(--grow) both;animation-delay:.3s}
-.slide.active .vbars .trend path.hd{animation-delay:1.35s;animation-duration:.3s}
+.vbars .trend path{fill:none;stroke:var(--key2);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-dasharray:var(--len,600);stroke-dashoffset:var(--len,600)}
+/* drawn like a pen stroke once the bars have mostly grown (the engine measures --len), then the head; the note fades in with it */
+.slide.active .vbars .trend path{animation:trendDraw .9s cubic-bezier(.45,0,.2,1) both;animation-delay:1s}
+.slide.active .vbars .trend path.hd{animation-duration:.28s;animation-delay:1.85s}
+.slide.active .vbars .trend-t{animation:rise .6s var(--ease) both;animation-delay:1s}
 @keyframes trendDraw{to{stroke-dashoffset:0}}
 html.static .vbars .trend path{stroke-dashoffset:0;animation:none!important}
+html.static .vbars .trend-t{animation:none!important}
 .trend-t{font:italic 700 13px var(--ff);letter-spacing:.04em}
 /* ranked logo line under a treemap (logo sizes from data-logo-area) */
 .top5{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}

@@ -126,6 +126,17 @@
       }).join(""));
       host.insertAdjacentHTML("afterend", '<div class="vbars-x">' + rows.map(function (r) { return "<span>" + esc(r[0]) + "</span>"; }).join("") + "</div>");
     });
+    // trend arrow: its stroke is non-scaling, so the dash that draws it is measured in screen px along the stretched path
+    each(".vbars .trend path", function (p) {
+      var m = p.getCTM(), L = p.getTotalLength(), len = 0, prev = null;
+      if (!m || !L) return;
+      for (var i = 0; i <= 40; i++) {
+        var q = p.getPointAtLength(L * i / 40), x = m.a * q.x + m.c * q.y, y = m.b * q.x + m.d * q.y;
+        if (prev) len += Math.sqrt((x - prev[0]) * (x - prev[0]) + (y - prev[1]) * (y - prev[1]));
+        prev = [x, y];
+      }
+      p.style.setProperty("--len", Math.ceil(len) + 2);
+    });
   }
 
   function legend(series, color, cls) {
