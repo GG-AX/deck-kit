@@ -499,7 +499,7 @@
   var KEY = "deck:" + DECK_DIR.toLowerCase();
   window.DECK_ENGINE = { version: VERSION, key: KEY };   // read by the kit's tools
   var NB = window.DECK_NOTES || { saved: "", notes: D.notes || {} };
-  var NOTES = NB.notes, DRAFT = KEY + "|notes-draft", noteHandle = null, dirty = false, presSrc = null;
+  var NOTES = NB.notes, DRAFT = KEY + "|notes-draft", dirty = false, presSrc = null;
   try {
     var draft = JSON.parse(localStorage.getItem(DRAFT) || "null");
     if (draft && draft.base === NB.saved && draft.notes) { NOTES = draft.notes; dirty = true; }
@@ -513,9 +513,9 @@
   /* Saving, in order of preference:
      1) Edge/Chrome file access: notes.js is chosen once per PC; the choice is remembered (IndexedDB)
      2) other browsers: download notes.js to replace by hand */
-  function idb(mode, fn) {
+  function idb(mode, fn, win) {
     return new Promise(function (ok, no) {
-      var q = indexedDB.open(KEY, 1);
+      var q = (win || window).indexedDB.open(KEY, 1);
       q.onupgradeneeded = function () { q.result.createObjectStore("kv"); };
       q.onerror = function () { no(q.error); };
       q.onsuccess = function () {
@@ -525,9 +525,10 @@
       };
     });
   }
-  function rememberedHandle() {
-    if (noteHandle) return Promise.resolve(noteHandle);
-    return idb("readonly", function (st) { return st.get("notesHandle"); }).catch(function () { return null; });
+  // read through the presenter window: the click that asks for write permission happened there, and Chrome only
+  // grants it (after a browser restart) to a handle that lives in the window holding that click
+  function rememberedHandle(win) {
+    return idb("readonly", function (st) { return st.get("notesHandle"); }, win).catch(function () { return null; });
   }
   function saveNotes(win) {
     var stamp = new Date().toISOString(), ordered = {};
@@ -545,7 +546,7 @@
       done("Downloaded notes.js → replace assets/notes.js in the presentation folder with it");
       return;
     }
-    rememberedHandle().then(function (h) {
+    rememberedHandle(win).then(function (h) {
       if (!h) return null;
       // a remembered file is only reused if it is still the notes.js this deck was loaded from (folder not moved/copied)
       return h.requestPermission({ mode: "readwrite" }).then(function (p) {
@@ -564,8 +565,7 @@
       });
     }).then(function (h) {
       return h.createWritable().then(function (w) { return w.write(text).then(function () { return w.close(); }); }).then(function () {
-        noteHandle = h;
-        idb("readwrite", function (st) { return st.put(h, "notesHandle"); }).catch(function () {});
+        idb("readwrite", function (st) { return st.put(h, "notesHandle"); }, win).catch(function () {});
         done("✓ Saved");
       });
     }).catch(fail);
