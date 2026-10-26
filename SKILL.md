@@ -34,7 +34,8 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
    - 원본이 영상·HTML 툴이면: 영상은 `presentation\assets\video\`(+ 포스터 jpg), HTML 보고서는 `presentation\reports\`에 두고 보고서 카드로 연다. 미리보기는 `shots.py --reports`.
 2. **구성안** — 슬라이드 목록(순서, id, 제목, 챕터, 레이아웃, 쓸 부품, 이미지)을 `session.md`에 적고 그대로 진행한다(확인받지 않는다).
 3. **슬라이드 쓰기** — `presentation\deck.html`(이름은 바꿔도 된다. 폴더 안 .html은 하나만).
-   - **견본은 참고용이다. 레이아웃·위치·크기·이미지는 덱마다 자유다. 원본 PPT의 배치도 따를 필요 없다**(`DESIGN.md`). 맞는 견본이 있으면 복사해서 내용을 바꾸고 `data-sample`을 지운다. 맞는 게 없으면 공통 클래스와 토큰으로 새 레이아웃을 직접 만든다(덱 전용 스타일은 `assets\deck.css`).
+   - **견본은 부품 사전이다.** 부품(표·차트·카드·사진 벽…)의 마크업만 가져다 쓰고, 슬라이드 배치는 따라 하지 않는다. 레이아웃·위치·크기·이미지는 원본 내용을 보고 덱마다 새로 짠다. 원본 PPT의 배치도 따를 필요 없다(`DESIGN.md`). 견본 장을 그대로 고쳐 쓸 때는 `data-sample`을 지운다. 덱 전용 스타일은 `assets\deck.css`.
+   - **다른 덱 폴더는 보지도 복사하지도 않는다**(HTML·CSS·도구·그림 모두). 부품은 키트에서만 가져온다. 키트에 없는 부품이 필요하면 `deck.css`에 만들고 `session.md`의 "키트에 없던 것"에 적는다(키트 피드백이 된다). 예외: 사용자가 "○○ 덱의 그 장을 그대로"라고 지정한 경우만.
    - 안 쓰는 견본 슬라이드와 예시 이미지(`assets\img\` 안 견본용 파일)·예시 데이터는 지운다.
    - `<title>`, `<html lang>`(한글 덱이면 `ko`), `<body data-logo="…" data-topline="…">`(상단 바의 로고와 문구)를 정한다.
    - `assets\notes.js`에 슬라이드마다 발표자 스크립트를 쓴다(원본 노트가 있으면 그대로). 키는 슬라이드 id.
@@ -92,7 +93,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 
 ## 부품 — 견본 덱의 예시 슬라이드
 
-정확한 마크업은 `template\presentation\deck.html`에서 해당 id를 찾아 복사한다.
+정확한 마크업은 `template\presentation\deck.html`에서 해당 id를 찾아 복사한다. 한 장에 부품 여러 개를 모아 보여 줄 뿐이니, 배치는 따라 하지 않는다. 그림은 `sample-slides.jpg`.
 
 | 견본 id | 부품 | 핵심 |
 | --- | --- | --- |
@@ -103,6 +104,9 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `chart-2` | 추세·구성 | 선 그래프 `data-line`, 누적 막대 `data-stack`(조각 라벨 `"labels":true`), 결론 `.concl` |
 | `logos` | 로고 격자 4×4 | `.logo-grid4 data-logo-area`>`.lg`(img + 상태 캡션 `.note`) — 로고 크기는 엔진이 면적으로 맞춘다 |
 | `kpi` | 숫자 카드 + 도넛 | 카드 안 `.donut`(`data-donut`) + 카운트업, 아래 비율 막대 |
+| `table` | 표 · 숫자 카드 · 상태 줄 | `.hd`(제목 줄 + `.stat`), `.tbl`(병합 칸 `td.g` rowspan, 숫자 `.r`, 소계 `tr.sub`, 합계 `tr.tot`, `.big` `.fill`), `.kpi` 카드, `.tl-rows` > `.tl-row`(칩 색 `--c` = 회색 단계) |
+| `chart-3` | 추세 · 순위 · 조각 많은 구성 | 막대 안 `svg.trend`(추세 화살표, 막대와 함께 그려짐) + `.trend-t`, 한 줄 비율 막대 `.cr.h`, 트리맵 아래 `.top5`(로고 순위 줄, `data-logo-area`), 도넛 `.dn-wrap` + 가운데 `.dn-c`, 범례 `.chips`(`--cat` 색) · `.lgd` |
+| `map-photos` | 지도 · 사진 벽 · 그림 위 표시 | `.mapbox`(`--ar`) + `.pin`(이름표) · `.pin.n`(번호), `.kv`, `.pnl` + `.wall`(같은 높이 `--h`, `.cut` = 배경 지운 사진, `i.br` 줄바꿈), `.pic` + `.box` `.tick` `.tag`(그림 기준 %), `.stp`(번호 단계), `.lgs`(한 줄 `--n`칸 로고), `.todo`(자료 기다리는 자리) |
 | `columns` | 3단 카드 + 결론 | `.rule` 칼럼(제목·`ul.list`·`.hl`) + `.concl` + 출처 `.foot` |
 | `photo-steps` | 사진 + 글 + 단계 | `.figure`(+ 출처 `.src`), `.chip`, 01→05 `.flow` |
 | `collage` | 콜라주 | `data-collage`(칸 좌표, 1192×578 기준) + `data.js`의 portfolio(배경 지운 인물 사진) |

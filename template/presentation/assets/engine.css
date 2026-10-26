@@ -316,3 +316,103 @@ html.static .tm .tl{opacity:1;animation:none!important}
 html.static .lc-plot svg{clip-path:none;animation:none!important}
 html.static .lc-dot,html.static .lc-end,html.static .stack .tot,html.static .stack .sl{opacity:1;animation:none!important}
 html.static .stack .bars{transform:none;animation:none!important}
+/* ---------- components (v1.4): built first in real decks (Carhartt, Target, AEO, Nordstrom), moved here so decks stop copying each other ---------- */
+/* heading row: title left, something small right (stat, logo, label) */
+.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:14px}
+.hd .title{margin:0}
+/* big number with a small label under it */
+.stat b{display:block;font:800 30px/1.05 var(--ff);letter-spacing:-.5px;color:var(--key);font-variant-numeric:tabular-nums}
+.stat span{display:block;margin-top:5px;font:600 10.5px var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+/* number card: label, big number, note */
+.kpi{display:flex;flex-direction:column;gap:6px;padding:14px 18px}
+.kpi b{font:800 34px/1.05 var(--ff);letter-spacing:-.5px;color:var(--key);font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted)}
+/* small key / value lines */
+.kv{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--body)}
+.kv b{color:var(--ink)}
+/* data table: .c centre, .r numbers right, td.g group cell (rowspan), tr.sub subtotal, tr.tot total; .big = larger rows, .fill = fill the box */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;color:var(--body)}
+.tbl th{background:var(--key);color:#fff;font:700 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:7px 10px;text-align:left}
+.tbl td{border-bottom:1px solid var(--line);padding:6px 10px}
+.tbl .c{text-align:center}
+.tbl .r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbl td.g{background:var(--tile);font-weight:700;color:var(--ink);vertical-align:middle;border-right:1px solid var(--line)}
+.tbl tr.sub td{background:var(--tile);font-weight:700;color:var(--ink)}
+.tbl tr.tot td{background:var(--fill);font-weight:800;color:var(--ink)}
+.tbl.big td{font-size:16px;padding:11px 16px}
+.tbl.big th{padding:10px 16px;font-size:11.5px}
+.tbl.fill{height:100%}
+/* one-line bar rows inside .cats: label (or logo) | bar | value */
+.cr.h{grid-template-columns:150px 1fr 72px;grid-template-rows:28px}
+.cr.h .cl{grid-column:auto;display:flex;align-items:center;gap:6px;font-size:12px}
+.cr.h .ct{height:28px}
+.cr.h .cv{font-size:19px}
+/* status rows: key chip, arrow, value (chip colour from --c, a grey tone) */
+.tl-rows{display:flex;flex-direction:column;gap:8px;flex:1;justify-content:center}
+.tl-row{display:grid;grid-template-columns:1fr 18px 1fr;align-items:center;gap:8px}
+.tl-row .k{background:var(--c,var(--key));color:#fff;border-radius:6px;padding:7px 10px;font:700 12px var(--mono);letter-spacing:.06em}
+.tl-row .v{font:800 14px var(--ff);color:var(--key)}
+.tl-row i{color:var(--mid);font-style:normal;font-weight:800}
+/* trend arrow over a bar chart: svg.trend (viewBox 0 0 100 100, preserveAspectRatio none) in % of the chart, drawn with the bars */
+.vbars .trend{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.vbars .trend path{fill:none;stroke:var(--key2);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-dasharray:400;stroke-dashoffset:400}
+.slide.active .vbars .trend path{animation:trendDraw 1.05s var(--grow) both;animation-delay:.3s}
+.slide.active .vbars .trend path.hd{animation-delay:1.35s;animation-duration:.3s}
+@keyframes trendDraw{to{stroke-dashoffset:0}}
+html.static .vbars .trend path{stroke-dashoffset:0;animation:none!important}
+.trend-t{font:italic 700 13px var(--ff);letter-spacing:.04em}
+/* ranked logo line under a treemap (logo sizes from data-logo-area) */
+.top5{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.top5 .label{margin-right:2px}
+.top5 .t5{display:inline-flex;align-items:center;gap:5px}
+.top5 .t5 b{font:800 12px var(--ff);color:var(--muted)}
+/* donut with a centre label; legends: .lgd (big value per part) and .chips (colour chip per part, for --cat colours) */
+.dn-wrap{position:relative;display:inline-block}
+.dn-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.dn-c b{font:800 30px var(--ff);color:var(--key)}
+.dn-c span{font:600 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lgd{display:flex;flex-direction:column;gap:2px;padding-left:12px;border-left:5px solid var(--c)}
+.lgd b{font:800 22px var(--ff);color:var(--key)}
+.lgd span:last-child{font-size:12.5px;color:var(--muted)}
+.chips{display:grid;grid-template-columns:repeat(var(--cols,2),auto);gap:5px 18px;font-size:12.5px;color:var(--body)}
+.chips span{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.chips i{width:10px;height:10px;border-radius:2px;background:var(--c);flex:none}
+.chips b{color:var(--ink);margin-left:auto;padding-left:8px}
+/* photos: .ph fills its box (cover; .top keeps heads; .fit shows all) */
+.ph{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px;background:var(--tile);min-height:0}
+.ph.top{object-position:center top}
+.ph.fit{object-fit:contain;background:#fff;border:1px solid var(--line)}
+video.ph{background:#000}
+/* photo wall: tinted panel with a .cat label; every photo the same visible height (--h), centred rows; i.br breaks a row; .cut = cut-outs standing on one line */
+.pnl{position:relative;background:var(--tile);border-radius:14px;padding:12px 14px 14px;display:flex;flex-direction:column;min-height:0;min-width:0}
+.pnl > .cat{margin-bottom:10px}
+.wall{flex:1;min-height:0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-content:center}
+.wall img{height:var(--h,150px);width:auto;border-radius:6px;background:#fff}
+.wall .br{flex-basis:100%;height:0}
+.wall.cut{gap:0 4px;align-items:flex-end}
+.wall.cut img{background:none;border-radius:0}
+/* map with pins (positions in % of the map image; map in deck greys, DESIGN map rule). .pin.n = numbered dot */
+.mapbox{position:relative;width:100%;aspect-ratio:var(--ar,16/9)}
+.mapbox > img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.pin{position:absolute;width:0;height:0}
+.pin i{position:absolute;left:-7px;top:-20px;width:14px;height:14px;border-radius:50% 50% 50% 0;background:var(--key);transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.pin i::after{content:"";position:absolute;left:4px;top:4px;width:6px;height:6px;border-radius:50%;background:#fff}
+.pin em{position:absolute;left:12px;top:-30px;font:700 11px var(--mono);font-style:normal;letter-spacing:.08em;color:var(--key);white-space:nowrap;background:rgba(255,255,255,.9);padding:2px 6px;border-radius:4px}
+.pin.n i{transform:none;border-radius:50%;width:22px;height:22px;left:-11px;top:-11px;display:grid;place-items:center;font:800 11px var(--ff);font-style:normal;color:#fff}
+.pin.n i::after{display:none}
+.pin.n em{top:-10px;left:16px}
+/* marks over a picture (box, tick, tag) in % of the picture, so they point at the same spot at any size */
+.pic{position:relative}
+.pic > img{display:block;width:100%;height:auto}
+.pic .box{position:absolute;border:2.5px solid var(--key);border-radius:6px}
+.pic .tick{position:absolute;transform:translate(-50%,-100%);font:800 24px/1 var(--ff);color:var(--key)}
+.pic .tag{position:absolute;transform:translateX(-50%);font-size:13px;padding:6px 12px;white-space:nowrap}
+/* logo tiles in rows of --n, a short last row stays centred (certifications, partners) */
+.lgs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.lgs .lg{flex:0 0 calc((100% - (var(--n,5) - 1) * 8px) / var(--n,5));height:var(--th,64px);background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px}
+.lgs .lg .note{font:600 10px var(--mono);letter-spacing:.06em;color:var(--muted)}
+/* numbered step label */
+.stp{display:flex;align-items:center;gap:10px;margin-bottom:8px;font:700 12.5px var(--ff);letter-spacing:.04em;color:var(--ink)}
+.stp b{font:700 11px var(--mono);color:#fff;background:var(--key);border-radius:4px;padding:2px 7px}
+/* placeholder for material still missing (listed under "원본 문제") */
+.todo{display:grid;place-items:center;min-height:80px;border:2px dashed var(--mid);border-radius:10px;background:repeating-linear-gradient(45deg,var(--tile) 0 10px,#fff 10px 20px);font:700 12px var(--mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase;text-align:center;padding:10px}
