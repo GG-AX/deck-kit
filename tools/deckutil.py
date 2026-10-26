@@ -1,4 +1,4 @@
-"""Shared helpers for the deck-kit tools: find Edge, find the deck, count slides, drive headless Edge.
+"""Shared helpers for the deck-kit tools: find the browser, find the deck, count slides, drive headless Chromium.
 
 A deck is given as its workspace folder, its presentation folder or the .html itself
 (default: the current folder). The deck .html is the one .html directly inside presentation\\.
@@ -21,21 +21,43 @@ for _s in (sys.stdout, sys.stderr):
     except (AttributeError, ValueError):
         pass
 
-EDGE_PATHS = [r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe",
-              r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe",
-              r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe",
-              # Mac: Edge if installed, else Chrome (same headless flags)
-              "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-              "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+BROWSER_PATHS = [r"%ProgramFiles%\Google\Chrome\Application\chrome.exe",
+                 r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe",
+                 r"%LocalAppData%\Google\Chrome\Application\chrome.exe",
+                 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                 r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe",
+                 r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe",
+                 r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe",
+                 "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"]
 SLIDE_RE = re.compile(r'<section\b[^>]*\bclass="(?:[^"]*\s)?slide(?:\s[^"]*)?"', re.I)
+BROWSER = None               # the executable, found once per process (shots.py finds it before starting its threads)
+BROWSER_IS_PLAYWRIGHT = False
 
 
-def find_edge():
-    for p in EDGE_PATHS:
-        p = os.path.expandvars(p)
-        if os.path.isfile(p):
-            return p
-    return shutil.which("msedge") or sys.exit("Microsoft Edge was not found (looked in Program Files, /Applications (Edge, Chrome) and PATH).")
+def find_browser():
+    """DECKKIT_BROWSER, else Playwright's Chromium, else Chrome or Edge (headless flags are the same)."""
+    global BROWSER, BROWSER_IS_PLAYWRIGHT
+    if BROWSER:
+        return BROWSER
+    p = os.environ.get("DECKKIT_BROWSER")
+    if not p:
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as pw:
+                p = pw.chromium.executable_path
+            # Playwright's full chrome.exe can fail to start on Windows (side-by-side error); its headless shell,
+            # downloaded with it and what Playwright itself runs headless, takes the same flags
+            rev = Path(p).parents[1].name.split("-")[-1]
+            p = next((str(s) for s in Path(p).parents[2].glob("chromium_headless_shell-%s/*/chrome-headless-shell*" % rev)
+                      if s.name in ("chrome-headless-shell", "chrome-headless-shell.exe")), p)
+            BROWSER_IS_PLAYWRIGHT = os.path.isfile(p)
+            p = p if BROWSER_IS_PLAYWRIGHT else None
+        except Exception:    # not installed, or its browser not downloaded yet
+            p = None
+    p = p or next((x for x in map(os.path.expandvars, BROWSER_PATHS) if os.path.isfile(x)), None) \
+        or shutil.which("chrome") or shutil.which("google-chrome") or shutil.which("msedge")
+    BROWSER = p or sys.exit("브라우저 없음 — pip install playwright && python -m playwright install chromium")
+    return BROWSER
 
 
 def find_ffmpeg():
@@ -44,7 +66,10 @@ def find_ffmpeg():
         return p
     for c in sorted(Path(os.path.expandvars(r"%LocalAppData%\Microsoft\WinGet\Packages")).glob("Gyan.FFmpeg*/*/bin/ffmpeg.exe")):
         return str(c)
-    sys.exit("ffmpeg was not found (install: winget install Gyan.FFmpeg).")
+    for c in ("/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"):
+        if os.path.isfile(c):
+            return c
+    sys.exit("ffmpeg was not found (install: winget install Gyan.FFmpeg / brew install ffmpeg).")
 
 
 def find_html(path=None):
@@ -83,11 +108,11 @@ def read_js_data(path):
     return json.loads(t[start:t.rindex("}") + 1])
 
 
-def edge_cli(url, *args, size="1600,900", budget=15000, timeout=180):
-    """One-shot headless Edge (e.g. --screenshot=FILE or --dump-dom). Returns (stdout, console error lines)."""
+def browser_cli(url, *args, size="1600,900", budget=15000, timeout=180):
+    """One-shot headless Chromium (e.g. --screenshot=FILE or --dump-dom). Returns (stdout, console error lines)."""
     prof = tempfile.mkdtemp(prefix="deckkit_edge_")
     try:
-        r = subprocess.run([find_edge(), "--headless=new", "--disable-gpu-sandbox", "--hide-scrollbars", "--mute-audio",
+        r = subprocess.run([find_browser(), "--headless=new", "--disable-gpu-sandbox", "--hide-scrollbars", "--mute-audio",
                             "--no-first-run", "--user-data-dir=" + prof, "--window-size=" + size,
                             "--virtual-time-budget=%d" % budget, "--enable-logging=stderr", "--v=0", *args, url],
                            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
@@ -97,17 +122,17 @@ def edge_cli(url, *args, size="1600,900", budget=15000, timeout=180):
         shutil.rmtree(prof, ignore_errors=True)
 
 
-class Edge:
-    """Headless Edge driven over the DevTools protocol (needs websocket-client)."""
+class Chromium:
+    """Headless Chromium driven over the DevTools protocol (needs websocket-client)."""
 
     def __init__(self, size=(1600, 900), args=()):
         import websocket
         self.prof = tempfile.mkdtemp(prefix="deckkit_cdp_")
-        self.proc = subprocess.Popen([find_edge(), "--headless=new", "--remote-debugging-port=0", "--no-first-run",
+        self.proc = subprocess.Popen([find_browser(), "--headless=new", "--remote-debugging-port=0", "--no-first-run",
                                       "--hide-scrollbars", "--mute-audio", "--user-data-dir=" + self.prof,
                                       "--window-size=%d,%d" % size, *args, "about:blank"],
                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        port_file = Path(self.prof) / "DevToolsActivePort"   # Edge writes the port it picked here
+        port_file = Path(self.prof) / "DevToolsActivePort"   # the browser writes the port it picked here
         page = None
         for _ in range(150):
             try:
@@ -119,7 +144,7 @@ class Edge:
                 time.sleep(0.2)
         if not page:
             self.close()
-            raise RuntimeError("headless Edge did not start")
+            raise RuntimeError("headless Chromium did not start")
         self.ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=60, suppress_origin=True)
         self.n = 0
         self.events = []

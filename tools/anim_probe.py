@@ -1,4 +1,4 @@
-"""Watch elements of one slide while it animates in (headless Edge).
+"""Watch elements of one slide while it animates in (headless Chromium).
 
 usage: python anim_probe.py [deck] --slide N --sel "CSS selector" [--secs 2.5]
 Prints the boxes (x, y, width, height, start of text) of the matched elements whenever one of them
@@ -9,7 +9,7 @@ import argparse
 import json
 import time
 
-from deckutil import Edge, find_html
+from deckutil import Chromium, find_html
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
     js = ("(function(){var s=document.querySelectorAll('#deck > .slide')[%d];return [].map.call(s.querySelectorAll(%s),function(e){"
           "var r=e.getBoundingClientRect();return [Math.round(r.x*10)/10,Math.round(r.y*10)/10,Math.round(r.width*10)/10,"
           "Math.round(r.height*10)/10,(e.textContent||'').trim().slice(0,12)]})})()") % (a.slide - 1, json.dumps(a.sel))
-    with Edge() as e:
+    with Chromium() as e:
         e.open(html.as_uri() + "#1")
         time.sleep(1.0)
         e.ev("location.hash='#%d'" % a.slide)

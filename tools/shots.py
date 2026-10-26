@@ -1,4 +1,4 @@
-"""Screenshot every slide (animations off: ?static) with headless Edge and print browser console errors.
+"""Screenshot every slide (animations off: ?static) with headless Chromium and print browser console errors.
 
 usage: python shots.py [deck] [--from N] [--to N] [--size W,H] [--out DIR] [--jobs N] [--reports]
   deck       deck workspace, its presentation folder or the .html (default: current folder)
@@ -16,7 +16,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from deckutil import count_slides, deck_root, edge_cli, find_html
+from deckutil import browser_cli, count_slides, deck_root, find_browser, find_html
 
 
 def main():
@@ -35,13 +35,14 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     n = count_slides(html)
     last = min(a.last or n, n)
+    find_browser()                                       # once, before the threads (Playwright is not thread-safe)
 
     def one(k):
         f = out / ("s%02d.png" % k)
         if f.exists():
             f.unlink()
         try:
-            _, errors = edge_cli(html.as_uri() + "?static#%d" % k, "--screenshot=" + str(f), size=a.size)
+            _, errors = browser_cli(html.as_uri() + "?static#%d" % k, "--screenshot=" + str(f), size=a.size)
         except subprocess.TimeoutExpired:
             errors = []
         return k, f, errors
@@ -85,7 +86,7 @@ def reports(html, out):
             bad += 1
             continue
         png = out / ("report_%s.png" % rep.stem)
-        edge_cli(rep.as_uri(), "--screenshot=" + str(png), size="1600,1000", budget=20000, timeout=300)
+        browser_cli(rep.as_uri(), "--screenshot=" + str(png), size="1600,1000", budget=20000, timeout=300)
         dest.mkdir(parents=True, exist_ok=True)
         thumb = dest / (rep.stem + ".webp")
         Image.open(png).convert("RGB").save(thumb, quality=86, method=6)

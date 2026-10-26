@@ -1,14 +1,14 @@
-"""Rendering load on chosen slides (headless Edge): screen frame rate and dropped video frames.
+"""Rendering load on chosen slides (headless Chromium): screen frame rate and dropped video frames.
 
 usage: python perf_probe.py [deck] --slides 4,2,16 [--size 1920,1080]
 For each slide: requestAnimationFrame rate over 5 s and, for the videos playing on it, dropped / total
-frames. A full-screen video (▶) on the slide is started first. Headless Edge draws on the CPU, so the
+frames. A full-screen video (▶) on the slide is started first. Headless Chromium draws on the CPU, so the
 numbers are lower than on a laptop GPU — compare before/after on the same PC, not against a target.
 """
 import argparse
 import time
 
-from deckutil import Edge, find_html
+from deckutil import Chromium, find_html
 
 MEASURE = """new Promise(function(ok){
   var vids=[].slice.call(document.querySelectorAll('#deck > .slide')[%d].querySelectorAll('video'));
@@ -30,7 +30,7 @@ def main():
     a = ap.parse_args()
     html = find_html(a.deck)
     w, h = (int(x) for x in a.size.split(","))
-    with Edge(size=(w, h), args=["--autoplay-policy=no-user-gesture-required"]) as e:
+    with Chromium(size=(w, h), args=["--autoplay-policy=no-user-gesture-required"]) as e:
         e.open(html.as_uri() + "#1")
         time.sleep(3)
         print(html.name, a.size)

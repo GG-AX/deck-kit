@@ -1,4 +1,4 @@
-"""Check the presenter script (notes) in headless Edge: editing, drafts, and saving.
+"""Check the presenter script (notes) in headless Chromium: editing, drafts, and saving.
 
 usage: python notes_probe.py [deck] [--other DECK] [--save]
   deck     the deck to check (workspace, presentation folder or .html; default: current folder)
@@ -15,7 +15,7 @@ import subprocess
 import time
 import urllib.request
 
-from deckutil import Edge, find_html, read_js_data, slide_ids
+from deckutil import Chromium, find_html, read_js_data, slide_ids
 
 HELPER = "http://127.0.0.1:47615"
 results = []
@@ -37,8 +37,8 @@ def wait(fn, timeout=8.0):
 
 
 class Deck:
-    def __init__(self, edge, html):
-        self.e, self.html = edge, html
+    def __init__(self, browser, html):
+        self.e, self.html = browser, html
         ids = slide_ids(html)
         notes = read_js_data(html.parent / "assets" / "notes.js")["notes"]
         with_notes = [i for i, s in enumerate(ids[:-1]) if notes.get(s)]
@@ -74,7 +74,7 @@ def main():
     ap.add_argument("--save", action="store_true")
     a = ap.parse_args()
     html = find_html(a.deck)
-    with Edge() as e:
+    with Chromium() as e:
         d = Deck(e, html)
         d.open()
         e.ev("localStorage.clear()")

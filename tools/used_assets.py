@@ -1,7 +1,7 @@
 """Which files in presentation\\assets does the deck actually use?
 
 usage: python used_assets.py [deck] [--move]
-used = files the browser loads while every slide is shown (headless Edge)
+used = files the browser loads while every slide is shown (headless Chromium)
      + files named in the deck: HTML src/href/poster/data-report, every "assets/…" path in the deck's
        data scripts (data.js, motion.js, …), url() in engine.css/deck.css
      + always: the engine files, notes.js(+ notes.prev.js), the save helper, every font and its licence
@@ -16,13 +16,14 @@ import time
 import urllib.parse
 from pathlib import Path
 
-from deckutil import Edge, count_slides, deck_root, find_html
+import deckutil
+from deckutil import Chromium, count_slides, deck_root, find_html
 
 ALWAYS = {"assets/engine.js", "assets/engine.css", "assets/deck.css", "assets/notes.js", "assets/notes.prev.js", "assets/notes_server.ps1"}
 
 
 def dynamic(html, pres):
-    with Edge(args=["--autoplay-policy=no-user-gesture-required"]) as e:
+    with Chromium(args=["--autoplay-policy=no-user-gesture-required"]) as e:
         e.send("Network.enable")
         e.open(html.as_uri() + "#1")
         time.sleep(2)
@@ -106,7 +107,10 @@ def main():
     missing = sorted(f for f in keep if f.startswith("assets/") and f not in ALWAYS and not (pres / f).exists())
     print("referenced but missing:", missing or "none")
     print("load failures:", [x for x in failed if x and "ABORTED" not in x][:5] or "none")
-    if playing:
+    if playing and deckutil.BROWSER_IS_PLAYWRIGHT:
+        # shortcut: Playwright's Chromium has no H.264/AAC, so clips never play there; set DECKKIT_BROWSER to Chrome/Edge to check them
+        print("(Chromium: 영상 재생 검사는 Chrome·Edge에서만)")
+    elif playing:
         print("card clips playing: %d of %d" % (sum(sum(v) for v in playing.values()), sum(len(v) for v in playing.values())))
     if a.move and unused:
         dest = deck_root(html) / "work" / "unused_assets"
