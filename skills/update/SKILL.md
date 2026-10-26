@@ -21,5 +21,4 @@ disable-model-invocation: true
 
 `claude` 명령을 찾을 수 없으면(VS Code 확장만 깔린 PC) 2단계 대신 "Manage plugins → Plugins 탭 → `deck-kit`의 🔄 버튼"을 누르라고 안내한다. 0·5단계는 그대로 한다.
 
-실패하면 메시지를 그대로 보여 준다. 저장소 접근 오류(`Authentication`, `not found`, `403`)라면 원인은 보통 둘이다:
-GitHub 로그인이 안 됨(`gh auth login` 후 `gh auth setup-git`), 또는 저장소 초대를 아직 수락하지 않음.
+실패하면 메시지를 그대로 보여 준다. 저장소는 공개라 GitHub 로그인이 필요 없다. 접근 오류(`not found`, `403`, 시간 초과)는 보통 네트워크·프록시 문제이니 마켓플레이스 주소가 `GG-AX/deck-kit`인지와 인터넷 연결을 본다.
