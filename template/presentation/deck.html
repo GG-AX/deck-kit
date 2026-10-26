@@ -17,7 +17,7 @@
 <div class="stage"><div class="deck" id="deck">
 
 <!-- 표지: 로고 · 회사명 · 제목 · 날짜 · 기밀 고지 + 오른쪽 사진 -->
-<section class="slide dark" data-src="cover" data-title="Title" data-chapter="Opening" data-sample>
+<section class="slide dark" data-src="cover" data-title="Title" data-chapter="Opening" data-sample data-guide="표지|덱 첫 장 — 로고·회사명·제목·날짜·기밀 문구 + 오른쪽 큰 사진">
   <div class="title-wrap">
     <div class="l">
       <img class="logo reveal" style="--i:0" src="assets/img/logo.webp" alt="Logo">
@@ -31,7 +31,7 @@
 </section>
 
 <!-- 영상: 화면 가득, ▶ 클릭 또는 Enter로 재생(자동 재생 안 함) -->
-<section class="slide dark" data-src="video" data-title="Company Film" data-chapter="Opening" data-sample>
+<section class="slide dark" data-src="video" data-title="Company Film" data-chapter="Opening" data-sample data-guide="전체 화면 영상|회사 소개 영상처럼 화면 가득 틀 때 — ▶ 또는 Enter로 재생(자동 재생 안 함)">
   <div class="video-full">
     <div class="vt reveal" style="--i:0"><span class="label">Company Film</span></div>
     <div class="vbox reveal" style="--i:1">
@@ -42,7 +42,7 @@
 </section>
 
 <!-- 챕터 커버: 큰 번호 + 챕터명 + 목차(지금 챕터만 .on) -->
-<section class="slide dark" data-src="chapter" data-title="01 Market Overview" data-chapter="01 · Market Overview" data-sample>
+<section class="slide dark" data-src="chapter" data-title="01 Market Overview" data-chapter="01 · Market Overview" data-sample data-guide="챕터 표지|큰 주제가 바뀔 때 — 큰 번호 + 챕터 이름 + 목차(지금 챕터 강조)">
   <div class="divider">
     <div><div class="big reveal" style="--i:0">01</div><h1 class="reveal" style="--i:1">MARKET<br>OVERVIEW</h1></div>
     <div class="agenda reveal" style="--i:2">
@@ -53,33 +53,38 @@
   </div>
 </section>
 
-<!-- 숫자·차트: 막대(전망 강조 fc·fc2) · 트리맵 · 비율 막대 · 숫자 카운트업. 차트는 숫자만 적으면 그려진다 -->
-<section class="slide" data-src="chart" data-title="Key Numbers" data-chapter="01 · Market Overview" data-sample>
+<!-- 숫자·차트: 막대(전망 강조 fc·fc2) + 추세 화살표(svg.trend, 막대와 함께 그려짐) · 트리맵 + Top 5 줄(.top5) · 숫자 카드(카운트업) · 비율 막대(.cats, 한 줄형 .cr.h). 차트는 숫자만 적으면 그려진다 -->
+<section class="slide" data-src="chart" data-title="Key Numbers" data-chapter="01 · Market Overview" data-sample data-guide="핵심 숫자|매출·고객처럼 숫자를 한눈에 — 막대 + 추세 화살표, 점유 타일 + 상위 5, 숫자 카드, 분야별 비율 막대">
   <div class="band"><span class="sec">Key Numbers</span></div>
   <div class="page">
     <div class="grid" style="grid-template-columns:1.2fr 1.3fr .85fr;flex:1;min-height:0">
       <div class="card reveal" style="--i:1;display:flex;flex-direction:column">
         <div class="label">Sales</div>
         <div class="sub" style="margin:2px 0 0">Forecast 2023~2027 · Mil. USD</div>
-        <div style="flex:1;display:flex;flex-direction:column;padding-top:28px">
+        <div style="flex:1;display:flex;flex-direction:column;padding-top:44px;min-height:0">
           <div class="vbars" data-bars='[["2023",420],["2024",460],["2025",390],["2026 (F)",480,"fc"],["2027 (F)",560,"fc2"]]'>
-            <div class="anno" style="left:40%;top:3%">Recovery &amp; Growth →</div>
+            <svg class="trend" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M50,22 Q75,14 92,-12"/><path class="hd" d="M86,-11 L92,-12 L91,-6"/></svg>
+            <div class="anno trend-t" style="left:2%;top:-8%">Recovery &amp; growth</div>
           </div>
+        </div>
+        <div class="label" style="margin-top:14px">2027 (F) by channel</div>
+        <div class="cats" style="flex:none;gap:8px;margin-top:8px">
+          <div class="cr h" style="--d:0;--w:41%;--c:var(--tone-1)"><span class="cl">STORES</span><div class="ct"><div class="cf"></div></div><b class="cv">41%</b></div>
+          <div class="cr h" style="--d:1;--w:41%;--c:var(--tone-3)"><span class="cl">ONLINE</span><div class="ct"><div class="cf"></div></div><b class="cv">41%</b></div>
+          <div class="cr h" style="--d:2;--w:18%;--c:var(--tone-5)"><span class="cl">EXPORT</span><div class="ct"><div class="cf"></div></div><b class="cv">18%</b></div>
         </div>
       </div>
       <div class="card reveal" style="--i:2;display:flex;flex-direction:column">
         <div class="label">Customer Mix (2026)</div>
-        <div style="flex:1;min-height:0;padding:14px 0">
+        <div style="flex:1;min-height:0;padding-top:14px">
           <div class="tm" data-treemap='[["Brand A",24,"assets/img/brands/brand-a.webp"],["Brand B",20,"assets/img/brands/brand-b.webp"],["Brand C",13,"assets/img/brands/brand-c.webp"],["Brand D",11,"assets/img/brands/brand-d.webp"],["Brand E",9,"assets/img/brands/brand-e.webp"],["Brand F",8,"assets/img/brands/brand-f.webp"],["Brand G",6,"assets/img/brands/brand-g.webp"],["Brand H",5,"assets/img/brands/brand-h.webp"],["Brand I",4,"assets/img/brands/brand-i.webp"]]'></div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;border-top:1px solid var(--line)">
-          <span class="label">Active Customers</span>
-          <b style="font:800 26px var(--ff);color:var(--key)" data-count="128">128</b>
-        </div>
+        <div class="top5" data-logo-area="520" data-logo-max="56,18"><span class="label">Top 5</span><span class="t5"><b>1.</b><img src="assets/img/brands/brand-a.webp" alt="Brand A"></span><span class="t5"><b>2.</b><img src="assets/img/brands/brand-b.webp" alt="Brand B"></span><span class="t5"><b>3.</b><img src="assets/img/brands/brand-c.webp" alt="Brand C"></span><span class="t5"><b>4.</b><img src="assets/img/brands/brand-d.webp" alt="Brand D"></span><span class="t5"><b>5.</b><img src="assets/img/brands/brand-e.webp" alt="Brand E"></span></div>
       </div>
       <div class="card reveal" style="--i:3;display:flex;flex-direction:column">
-        <div class="label">Categories</div>
-        <div class="cats">
+        <div class="kpi" style="padding:0 0 16px;border-bottom:1px solid var(--line)"><div class="label">Active Customers</div><b data-count="128">128</b><span>Top 5 make up 77% of sales</span></div>
+        <div class="label" style="margin-top:18px">Categories</div>
+        <div class="cats" style="justify-content:space-evenly">
           <div class="cr" style="--d:0;--w:62%;--c:var(--tone-1)"><span class="cl">WOMEN’S</span><div class="ct"><div class="cf"></div></div><b class="cv">62%</b></div>
           <div class="cr" style="--d:1;--w:18%;--c:var(--tone-2)"><span class="cl">MEN’S</span><div class="ct"><div class="cf"></div></div><b class="cv">18%</b></div>
           <div class="cr" style="--d:2;--w:12%;--c:var(--tone-4)"><span class="cl">KIDS</span><div class="ct"><div class="cf"></div></div><b class="cv">12%</b></div>
@@ -91,7 +96,7 @@
 </section>
 
 <!-- 차트 2: 선 그래프(추세) · 누적 막대(구성) + 결론. 숫자만 적으면 그려진다 -->
-<section class="slide" data-src="chart-2" data-title="Trend &amp; Mix" data-chapter="01 · Market Overview" data-sample>
+<section class="slide" data-src="chart-2" data-title="Trend &amp; Mix" data-chapter="01 · Market Overview" data-sample data-guide="추세와 구성|시간에 따른 변화와 구성비 — 선 그래프(올해 vs 작년), 쌓은 막대(조각마다 값), 결론 띠">
   <div class="band"><span class="sec">Trend &amp; Mix</span></div>
   <div class="page">
     <div class="grid" style="grid-template-columns:1.35fr 1fr;flex:1;min-height:0">
@@ -111,7 +116,7 @@
 </section>
 
 <!-- 로고 격자 4×4 + 상태 캡션(.note) -->
-<section class="slide" data-src="logos" data-title="Customers" data-chapter="01 · Market Overview" data-sample>
+<section class="slide" data-src="logos" data-title="Customers" data-chapter="01 · Market Overview" data-sample data-guide="고객사 로고|거래처·브랜드 소개 — 4×4 로고 격자(보이는 크기를 자동으로 맞춤), 로고 아래 작은 설명">
   <div class="band"><span class="sec">Customers</span></div>
   <div class="page">
     <div class="reveal" style="--i:0"><div class="label">As of 2026</div><div class="title s" style="margin-top:4px">Working with leading brands at home and abroad</div></div>
@@ -137,29 +142,40 @@
 </section>
 
 <!-- 숫자 카드 + 도넛: 항목별 카드(수치 · 도넛 · 카운트업) + 아래 합계 비율 막대. 왼쪽은 지도·사진 -->
-<section class="slide" data-src="kpi" data-title="Production Hubs" data-chapter="01 · Market Overview" data-sample>
+<section class="slide" data-src="kpi" data-title="Production Hubs" data-chapter="01 · Market Overview" data-sample data-guide="거점 비교|공장·지사별 규모 — 지도 위 번호 핀, 거점 카드(수치·도넛), 아래 합계 비율 막대">
   <div class="band"><span class="sec">Production Hubs</span></div>
   <div class="page">
-    <div class="grid" style="grid-template-columns:1.05fr 1fr;flex:1;min-height:0">
-      <div class="figure reveal" style="--i:1;background:var(--bg)"><img src="assets/img/photos/map.webp" alt="Hub locations"></div>
+    <div class="grid" style="grid-template-columns:1.25fr 1fr;flex:1;min-height:0">
+      <div class="card reveal" style="--i:1;display:flex;flex-direction:column">
+        <div class="label">Hub Locations</div>
+        <div style="flex:1;display:grid;place-items:center;min-height:0">
+          <div class="mapbox" style="--ar:5/4;max-height:100%">
+            <img src="assets/img/photos/map-plain.webp" alt="Hub map">
+            <span class="pin n" style="left:32%;top:38%"><i>1</i><em>NORTH</em></span>
+            <span class="pin n" style="left:58%;top:52%"><i>2</i><em>CENTRAL</em></span>
+            <span class="pin n" style="left:44%;top:74%"><i>3</i><em>SOUTH</em></span>
+          </div>
+        </div>
+        <div class="kv"><span><b>3</b> hubs · <b>225</b> staff · <b>26</b> lines</span><span>Output <b>74K</b> units a month</span></div>
+      </div>
       <div style="display:grid;grid-template-rows:1fr 1fr 1fr auto;gap:12px;min-height:0">
-        <div class="card reveal" style="--i:2;display:grid;grid-template-columns:44px 1fr 150px;gap:16px;align-items:center;padding:12px 18px">
+        <div class="card reveal" style="--i:2;display:grid;grid-template-columns:44px 1fr 104px;gap:16px;align-items:center;padding:12px 18px">
           <b style="width:44px;height:44px;border-radius:50%;background:var(--tile);display:grid;place-items:center;font:800 18px var(--ff);color:var(--key)">1</b>
           <div><div class="title s" style="margin:0">North Hub</div>
-            <div style="display:flex;gap:14px;white-space:nowrap;font-size:13.5px;color:var(--body);margin-top:4px"><span>STAFF: <b>120</b></span><span>LINES: <b>14</b></span><span>OUTPUT: <b>41K/month</b></span></div></div>
-          <div style="display:flex;align-items:center;gap:10px"><div class="donut" style="width:52px;height:52px" data-donut='[["North",55,"var(--tone-2)"],["",45,"var(--fill)"]]'><div class="svg-host"></div></div><b style="font:800 30px var(--ff)" data-count="55" data-suffix="%">55%</b></div>
+            <div style="display:flex;gap:14px;white-space:nowrap;font-size:15px;color:var(--body);margin-top:8px"><span>STAFF: <b>120</b></span><span>LINES: <b>14</b></span><span>OUTPUT: <b>41K/month</b></span></div></div>
+          <div class="dn-wrap"><div class="donut" style="width:104px;height:104px" data-donut='[["North",55,"var(--tone-2)"],["",45,"var(--fill)"]]'><div class="svg-host"></div></div><div class="dn-c"><b style="font-size:24px" data-count="55" data-suffix="%">55%</b></div></div>
         </div>
-        <div class="card reveal" style="--i:3;display:grid;grid-template-columns:44px 1fr 150px;gap:16px;align-items:center;padding:12px 18px">
+        <div class="card reveal" style="--i:3;display:grid;grid-template-columns:44px 1fr 104px;gap:16px;align-items:center;padding:12px 18px">
           <b style="width:44px;height:44px;border-radius:50%;background:var(--tile);display:grid;place-items:center;font:800 18px var(--ff);color:var(--key)">2</b>
           <div><div class="title s" style="margin:0">Central Hub</div>
-            <div style="display:flex;gap:14px;white-space:nowrap;font-size:13.5px;color:var(--body);margin-top:4px"><span>STAFF: <b>70</b></span><span>LINES: <b>8</b></span><span>OUTPUT: <b>22K/month</b></span></div></div>
-          <div style="display:flex;align-items:center;gap:10px"><div class="donut" style="width:52px;height:52px" data-donut='[["Central",30,"var(--tone-3)"],["",70,"var(--fill)"]]'><div class="svg-host"></div></div><b style="font:800 30px var(--ff)" data-count="30" data-suffix="%">30%</b></div>
+            <div style="display:flex;gap:14px;white-space:nowrap;font-size:15px;color:var(--body);margin-top:8px"><span>STAFF: <b>70</b></span><span>LINES: <b>8</b></span><span>OUTPUT: <b>22K/month</b></span></div></div>
+          <div class="dn-wrap"><div class="donut" style="width:104px;height:104px" data-donut='[["Central",30,"var(--tone-3)"],["",70,"var(--fill)"]]'><div class="svg-host"></div></div><div class="dn-c"><b style="font-size:24px" data-count="30" data-suffix="%">30%</b></div></div>
         </div>
-        <div class="card reveal" style="--i:4;display:grid;grid-template-columns:44px 1fr 150px;gap:16px;align-items:center;padding:12px 18px">
+        <div class="card reveal" style="--i:4;display:grid;grid-template-columns:44px 1fr 104px;gap:16px;align-items:center;padding:12px 18px">
           <b style="width:44px;height:44px;border-radius:50%;background:var(--tile);display:grid;place-items:center;font:800 18px var(--ff);color:var(--key)">3</b>
           <div><div class="title s" style="margin:0">South Hub</div>
-            <div style="display:flex;gap:14px;white-space:nowrap;font-size:13.5px;color:var(--body);margin-top:4px"><span>STAFF: <b>35</b></span><span>LINES: <b>4</b></span><span>OUTPUT: <b>11K/month</b></span></div></div>
-          <div style="display:flex;align-items:center;gap:10px"><div class="donut" style="width:52px;height:52px" data-donut='[["South",15,"var(--tone-4)"],["",85,"var(--fill)"]]'><div class="svg-host"></div></div><b style="font:800 30px var(--ff)" data-count="15" data-suffix="%">15%</b></div>
+            <div style="display:flex;gap:14px;white-space:nowrap;font-size:15px;color:var(--body);margin-top:8px"><span>STAFF: <b>35</b></span><span>LINES: <b>4</b></span><span>OUTPUT: <b>11K/month</b></span></div></div>
+          <div class="dn-wrap"><div class="donut" style="width:104px;height:104px" data-donut='[["South",15,"var(--tone-4)"],["",85,"var(--fill)"]]'><div class="svg-host"></div></div><div class="dn-c"><b style="font-size:24px" data-count="15" data-suffix="%">15%</b></div></div>
         </div>
         <div class="card reveal" style="--i:5;padding:12px 18px">
           <div class="label" style="margin-bottom:8px">Share of Output</div>
@@ -172,7 +188,7 @@
 </section>
 
 <!-- 부품 예시 — 표: .hd(제목 줄 + .stat) · .tbl(병합 칸 td.g, 숫자 .r, 소계 tr.sub, 합계 tr.tot, .big .fill) · .kpi 카드 · .tl-rows 상태 줄. 배치는 따라 하지 않는다 -->
-<section class="slide" data-src="table" data-title="Order Summary" data-chapter="01 · Market Overview" data-sample>
+<section class="slide" data-src="table" data-title="Order Summary" data-chapter="01 · Market Overview" data-sample data-guide="표 정리|오더·물량처럼 행이 많은 숫자 — 병합 칸·소계·합계 표, 큰 숫자 카드, 진행 상태 줄">
   <div class="band"><span class="sec">Order Summary</span></div>
   <div class="page">
     <div class="hd reveal" style="--i:0"><div><div class="label">Season 2027</div><div class="title">Orders by program</div></div>
@@ -205,39 +221,27 @@
   </div>
 </section>
 
-<!-- 부품 예시 — 차트 3: 막대 + 추세 화살표(svg.trend, 막대와 함께 그려짐) · 한 줄 비율 막대(.cr.h) · 트리맵 + Top 5 줄(.top5) · 조각이 많은 도넛(구분 팔레트 --cat + .chips 범례, .dn-c 가운데 글자). 배치는 따라 하지 않는다 -->
-<section class="slide" data-src="chart-3" data-title="Growth &amp; Mix" data-chapter="01 · Market Overview" data-sample>
-  <div class="band"><span class="sec">Growth &amp; Mix</span></div>
+<!-- 부품 예시 — 조각이 많은 구성(9개 넘음): 구분 팔레트 --cat 도넛 + 가운데 글자(.dn-c) · 큰 값 범례(.lgd) · 컬러칩 범례(.chips) · 결론. 배치는 따라 하지 않는다 -->
+<section class="slide" data-src="chart-3" data-title="Fabric Mix" data-chapter="01 · Market Overview" data-sample data-guide="조각 많은 구성|구성 항목이 9개를 넘을 때 — 구분 색 도넛 + 가운데 숫자, 상위 항목 크게, 전체 색 범례, 결론 띠">
+  <div class="band"><span class="sec">Fabric Mix</span></div>
   <div class="page">
-    <div class="grid" style="grid-template-columns:1fr 1fr 1.15fr;flex:1;min-height:0">
+    <div class="grid" style="grid-template-columns:1fr 1.1fr;flex:1;min-height:0">
       <div class="card reveal" style="--i:1;display:flex;flex-direction:column">
-        <div class="label">Units Shipped</div>
-        <div class="sub" style="margin:2px 0 0">Thousands</div>
-        <div style="flex:1;display:flex;flex-direction:column;padding-top:30px;min-height:0">
-          <div class="vbars" data-bars='[["2023",310],["2024",350],["2025",420],["2026",510],["2027 (F)",600,"fc"]]'>
-            <svg class="trend" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M10,44 Q55,36 90,4"/><path class="hd" d="M84,4.5 L90,4 L89,10"/></svg>
-            <div class="anno trend-t" style="left:4%;top:-2%">+94% in four years</div>
-          </div>
-        </div>
-        <div class="cats" style="flex:none;gap:8px;margin-top:14px">
-          <div class="cr h" style="--d:0;--w:64%;--c:var(--tone-2)"><span class="cl">ONLINE</span><div class="ct"><div class="cf"></div></div><b class="cv">64%</b></div>
-          <div class="cr h" style="--d:1;--w:36%;--c:var(--tone-5)"><span class="cl">STORES</span><div class="ct"><div class="cf"></div></div><b class="cv">36%</b></div>
-        </div>
-      </div>
-      <div class="card reveal" style="--i:2;display:flex;flex-direction:column">
-        <div class="label">Customer Mix (2026)</div>
-        <div style="flex:1;min-height:0;padding-top:14px">
-          <div class="tm" data-treemap='[["Brand A",24,"assets/img/brands/brand-a.webp"],["Brand B",20,"assets/img/brands/brand-b.webp"],["Brand C",13,"assets/img/brands/brand-c.webp"],["Brand D",11,"assets/img/brands/brand-d.webp"],["Brand E",9,"assets/img/brands/brand-e.webp"],["Brand F",8,"assets/img/brands/brand-f.webp"],["Brand G",6,"assets/img/brands/brand-g.webp"],["Brand H",5,"assets/img/brands/brand-h.webp"],["Brand I",4,"assets/img/brands/brand-i.webp"]]'></div>
-        </div>
-        <div class="top5" data-logo-area="520" data-logo-max="56,18"><span class="label">Top 5</span><span class="t5"><b>1.</b><img src="assets/img/brands/brand-a.webp" alt="Brand A"></span><span class="t5"><b>2.</b><img src="assets/img/brands/brand-b.webp" alt="Brand B"></span><span class="t5"><b>3.</b><img src="assets/img/brands/brand-c.webp" alt="Brand C"></span><span class="t5"><b>4.</b><img src="assets/img/brands/brand-d.webp" alt="Brand D"></span><span class="t5"><b>5.</b><img src="assets/img/brands/brand-e.webp" alt="Brand E"></span></div>
-      </div>
-      <div class="card reveal" style="--i:3;display:flex;flex-direction:column">
-        <div class="label">Fabric Mix · 12 parts</div>
-        <div class="sub" style="margin:2px 0 0">More than 9 parts: categorical colours (DESIGN)</div>
+        <div class="label">Fabric Mix · 2026</div>
+        <div class="sub" style="margin:2px 0 0">Share of units · 12 fabrics</div>
         <div style="flex:1;display:grid;place-items:center;min-height:0">
-          <div class="dn-wrap"><div class="donut" style="width:236px;height:236px" data-donut='[["Cotton",22,"var(--cat-1)"],["Polyester",15,"var(--cat-2)"],["Linen",12,"var(--cat-3)"],["Viscose",10,"var(--cat-4)"],["Modal",8,"var(--cat-5)"],["Wool",7,"var(--cat-6)"],["Nylon",6,"var(--cat-7)"],["Denim",5,"var(--cat-8)"],["Fleece",5,"var(--cat-9)"],["Silk",4,"var(--cat-10)"],["Tencel",3,"var(--cat-11)"],["Other",3,"var(--cat-12)"]]'><div class="svg-host"></div></div><div class="dn-c"><b>12</b><span>Fabrics</span></div></div>
+          <div class="dn-wrap"><div class="donut" style="width:400px;height:400px" data-donut='[["Cotton",22,"var(--cat-1)"],["Polyester",15,"var(--cat-2)"],["Linen",12,"var(--cat-3)"],["Viscose",10,"var(--cat-4)"],["Modal",8,"var(--cat-5)"],["Wool",7,"var(--cat-6)"],["Nylon",6,"var(--cat-7)"],["Denim",5,"var(--cat-8)"],["Fleece",5,"var(--cat-9)"],["Silk",4,"var(--cat-10)"],["Tencel",3,"var(--cat-11)"],["Other",3,"var(--cat-12)"]]'><div class="svg-host"></div></div><div class="dn-c"><b>12</b><span>Fabrics</span></div></div>
         </div>
-        <div class="chips" style="--cols:2">
+      </div>
+      <div class="card reveal" style="--i:2;display:flex;flex-direction:column;gap:18px">
+        <div class="label">Top 3</div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:14px">
+          <div class="lgd" style="--c:var(--cat-1)"><span class="label">Cotton</span><b>22%</b><span>Knits and shirting</span></div>
+          <div class="lgd" style="--c:var(--cat-2)"><span class="label">Polyester</span><b>15%</b><span>Outerwear and linings</span></div>
+          <div class="lgd" style="--c:var(--cat-3)"><span class="label">Linen</span><b>12%</b><span>Summer wovens</span></div>
+        </div>
+        <div class="label" style="margin-top:6px;padding-top:16px;border-top:1px solid var(--line)">All fabrics</div>
+        <div class="chips" style="--cols:2;flex:1;align-content:space-evenly">
           <span style="--c:var(--cat-1)"><i></i>Cotton<b>22%</b></span><span style="--c:var(--cat-7)"><i></i>Nylon<b>6%</b></span>
           <span style="--c:var(--cat-2)"><i></i>Polyester<b>15%</b></span><span style="--c:var(--cat-8)"><i></i>Denim<b>5%</b></span>
           <span style="--c:var(--cat-3)"><i></i>Linen<b>12%</b></span><span style="--c:var(--cat-9)"><i></i>Fleece<b>5%</b></span>
@@ -247,14 +251,15 @@
         </div>
       </div>
     </div>
+    <div class="concl reveal" style="--i:3;margin-top:16px"><b>NATURAL FIBRES LEAD</b><span>Cotton and linen alone make up a third of what we ship.</span></div>
   </div>
 </section>
 
 <!-- 부품 예시 — 지도·사진: .mapbox + .pin(이름표) / .pin.n(번호) · .kv · .pnl + .wall(같은 높이 사진 벽, .cut = 배경 지운 사진) · .pic(그림 위 표시 .box .tick, 그림 기준 %) · .stp(번호 단계) · .lgs(한 줄 N칸 로고) · .todo(자료 기다리는 자리). 배치는 따라 하지 않는다 -->
-<section class="slide" data-src="map-photos" data-title="Where We Make It" data-chapter="01 · Market Overview" data-sample>
+<section class="slide" data-src="map-photos" data-title="Where We Make It" data-chapter="01 · Market Overview" data-sample data-guide="위치·사진 모음|공장 위치·상품 여러 개·인증 — 지도 핀, 같은 높이 사진 줄, 그림 위 표시, 로고 한 줄, 자료 대기 자리">
   <div class="band"><span class="sec">Where We Make It</span></div>
   <div class="page">
-    <div class="grid" style="grid-template-columns:1fr 1.35fr;flex:1;min-height:0">
+    <div class="grid" style="grid-template-columns:1.15fr 1.2fr;flex:1;min-height:0">
       <div class="card reveal" style="--i:1;display:flex;flex-direction:column">
         <div class="label">Factories</div>
         <div style="flex:1;display:grid;place-items:center;min-height:0">
@@ -265,7 +270,9 @@
             <span class="pin" style="left:44%;top:74%"><i></i><em>SOUTH (2027)</em></span>
           </div>
         </div>
-        <div class="kv"><span><b>3</b> factories · <b>26</b> lines</span><span>Lead time <b>45 days</b> FOB</span></div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px;padding-top:16px;border-top:1px solid var(--line)">
+          <div class="stat"><b>3</b><span>Factories</span></div><div class="stat"><b>26</b><span>Lines</span></div><div class="stat"><b>45 days</b><span>Lead time FOB</span></div>
+        </div>
       </div>
       <div style="display:grid;grid-template-rows:1fr auto;gap:12px;min-height:0">
         <div class="pnl reveal" style="--i:2"><span class="cat">Best Sellers</span>
@@ -279,7 +286,7 @@
           <div class="card reveal" style="--i:4;display:flex;flex-direction:column;gap:10px">
             <div class="label">Certifications</div>
             <div class="lgs" style="--n:3;--th:48px" data-logo-area="900" data-logo-max="96,26"><div class="lg"><img src="assets/img/brands/brand-j.webp" alt="Cert A"></div><div class="lg"><img src="assets/img/brands/brand-k.webp" alt="Cert B"></div><div class="lg"><img src="assets/img/brands/brand-l.webp" alt="Cert C"></div><div class="lg"><img src="assets/img/brands/brand-m.webp" alt="Cert D"></div><div class="lg"><img src="assets/img/brands/brand-n.webp" alt="Cert E"></div></div>
-            <div class="todo" style="min-height:44px;flex:1">Audit report · waiting for file</div>
+            <div class="todo" style="min-height:44px;flex:1">Audit report · pending</div>
           </div>
         </div>
       </div>
@@ -287,23 +294,26 @@
   </div>
 </section>
 
-<!-- 3단 카드 + 결론: 칼럼마다 제목 · 글머리 · 강조 한 줄, 아래 결론 박스, 맨 아래 출처(.foot). roomy = 글자 크게 -->
-<section class="slide roomy" data-src="columns" data-title="Three Directions" data-chapter="02 · Case Studies" data-sample>
+<!-- 3단 카드 + 결론: 칼럼마다 제목 · 숫자(.stat) · 글머리 · 강조 한 줄, 아래 결론 박스, 맨 아래 출처(.foot). roomy = 글자 크게 -->
+<section class="slide roomy" data-src="columns" data-title="Three Directions" data-chapter="02 · Case Studies" data-sample data-guide="3단 정리|방향·전략 세 가지를 나란히 — 칼럼(제목·숫자·목록·한 줄 요약), 결론 띠, 출처">
   <div class="band"><span class="sec">Directions</span></div>
   <div class="page">
     <div class="grid" style="grid-template-columns:repeat(3,1fr);flex:1;min-height:0;gap:20px">
       <div class="rule reveal" style="--i:1;display:flex;flex-direction:column;gap:12px">
         <div class="title m">Better<br>Basics</div>
+        <div class="stat" style="padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><b>70%</b><span>Volume from core styles</span></div>
         <ul class="list"><li>Keep the proven core styles</li><li>Upgrade fabric and finish</li><li>Hold today’s price points</li><li>Refine fit before color or print</li><li>Start with the most re-ordered items</li></ul>
         <div class="hl" style="margin-top:auto">Basic ≠ plain</div>
       </div>
       <div class="rule reveal" style="--i:2;display:flex;flex-direction:column;gap:12px">
         <div class="title m">New Fabrics,<br>Offered First</div>
+        <div class="stat" style="padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><b>6 weeks</b><span>Ahead of buyer requests</span></div>
         <ul class="list"><li>Set the fabric direction before buyers ask</li><li>Compare mill price and lead time by region</li><li>Same hand, better cost</li><li>Three new fabrics every season</li><li>One-page proposals</li></ul>
         <div class="hl" style="margin-top:auto">Propose before asked</div>
       </div>
       <div class="rule reveal" style="--i:3;display:flex;flex-direction:column;gap:12px">
         <div class="title m">Test Small,<br>Scale Fast</div>
+        <div class="stat" style="padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><b>+18%</b><span>Re-order rate</span></div>
         <ul class="list"><li>Launch new styles in small runs</li><li>Read weekly sell-through</li><li>Re-order winners right away</li><li>Clear slow sellers within two weeks</li><li>Feed results into the next plan</li></ul>
         <div class="hl" style="margin-top:auto">Test → Scale</div>
       </div>
@@ -314,7 +324,7 @@
 </section>
 
 <!-- 사진 + 글 + 단계: 설명과 칩 · 사진(출처는 사진 오른쪽 아래 .src) · 01→05 흐름 · 설명 카드 + 결론 -->
-<section class="slide roomy" data-src="photo-steps" data-title="How It Works" data-chapter="02 · Case Studies" data-sample>
+<section class="slide roomy" data-src="photo-steps" data-title="How It Works" data-chapter="02 · Case Studies" data-sample data-guide="사진 + 과정|사진으로 설명하고 진행 단계를 보여 줄 때 — 큰 사진(출처), 설명 글, 01→05 단계. 그림만 크게 쓰려면 글 칸을 뺀다">
   <div class="band"><span class="sec">How It Works</span></div>
   <div class="page">
     <div class="grid" style="grid-template-columns:1.25fr 1fr;gap:24px;flex:1;min-height:0">
@@ -342,7 +352,7 @@
 
 <!-- 콜라주: 배경을 지운 인물 사진을 칸마다 줄 세움. 사진 목록은 data.js portfolio(data-pf),
      칸 위치는 data-collage(1192×578 기준 좌표, "bg":"alt" = 진한 바탕, "label" = 칸 이름) -->
-<section class="slide" data-src="collage" data-title="Category Collage" data-chapter="02 · Case Studies" data-sample>
+<section class="slide" data-src="collage" data-title="Category Collage" data-chapter="02 · Case Studies" data-sample data-guide="콜라주|카테고리별 분위기를 한 장에 — 배경 지운 인물 사진을 칸마다 겹쳐 세움">
   <div class="band"><span class="sec">Portfolio</span></div>
   <div class="page">
     <div class="collage" data-pf="collage" data-collage='[{"g":0,"x":0,"y":0,"w":448,"h":578,"ov":0.08,"bg":"alt","label":"Tops"},{"g":1,"x":464,"y":0,"w":728,"h":281,"ov":0.2,"label":"Dresses"},{"g":2,"x":464,"y":297,"w":728,"h":281,"ov":0.14,"label":"Skirts"}]'></div>
@@ -350,27 +360,17 @@
 </section>
 
 <!-- 상품 카드: 사진(또는 영상) · 로고 · 시즌 · 소재 · 수량. 카드 내용은 data.js bestsellers(data-bs), 영상 연결은 motion.js -->
-<section class="slide" data-src="product" data-title="Best Sellers" data-chapter="02 · Case Studies" data-sample>
+<section class="slide" data-src="product" data-title="Best Sellers" data-chapter="02 · Case Studies" data-sample data-guide="상품 카드|베스트셀러 등 상품 4개 — 사진·브랜드·소재·수량, 카드에 짧은 영상 가능">
   <div class="band"><span class="sec">Best Sellers</span></div>
   <div class="page"><div class="title reveal" style="--i:0">Best Sellers – Dresses</div><div class="bs-grid" data-bs="product"></div></div>
 </section>
 
-<!-- 큰 그림: 단계 표시(.stepline) + 제목 + 스크린샷 한 장을 크게 -->
-<section class="slide" data-src="big-image" data-title="Raw Data" data-chapter="03 · AI in Practice" data-sample>
-  <div class="band"><span class="sec">Sales Analysis with AI</span></div>
-  <div class="page">
-    <div class="stepline reveal" style="--i:0"><span class="on">1 · RAW DATA</span><span>2 · AI OUTPUT</span><span>3 · REPORT</span></div>
-    <div class="title reveal" style="--i:0">The sales data we receive every week</div>
-    <div class="figure reveal" style="--i:1;flex:1;min-height:0"><img src="assets/img/photos/dashboard.webp" alt="Sales data screen" style="object-fit:cover;object-position:top left"><span class="src">Screen: sample image</span></div>
-  </div>
-</section>
-
 <!-- 보고서 카드: 미리보기 + 열기 버튼 → 보고서 창. 보고서 파일은 reports\, 미리보기는 shots.py --reports 로 만든다 -->
-<section class="slide" data-src="report" data-title="Report" data-chapter="03 · AI in Practice" data-sample>
+<section class="slide" data-src="report" data-title="Report" data-chapter="03 · AI in Practice" data-sample data-guide="보고서 열기|별도 HTML 보고서를 발표 중에 열 때 — 단계 표시, 미리보기, 버튼 → 같은 화면 위 보고서 창">
   <div class="band"><span class="sec">Sales Analysis with AI</span></div>
   <div class="page">
     <div class="stepline reveal" style="--i:0"><span>1 · RAW DATA</span><span>2 · AI OUTPUT</span><span class="on">3 · REPORT</span></div>
-    <div class="report">
+    <div class="report" style="grid-template-columns:2.4fr 1fr">
       <div class="pv reveal" style="--i:1"><img src="assets/img/reports/sample_report.webp" alt="Report preview"></div>
       <div class="info reveal" style="--i:2">
         <div class="label">Report</div>
@@ -383,7 +383,7 @@
 </section>
 
 <!-- 마무리: 로고 + 큰 문장 하나 -->
-<section class="slide dark" data-src="closing" data-title="Thank You" data-chapter="Closing" data-sample>
+<section class="slide dark" data-src="closing" data-title="Thank You" data-chapter="Closing" data-sample data-guide="마무리|덱 마지막 장 — 로고 + 짧은 문장 하나">
   <div class="closing">
     <img class="logo reveal" style="--i:0" src="assets/img/logo.webp" alt="Logo">
     <h1 class="reveal" style="--i:1">Thank you</h1>

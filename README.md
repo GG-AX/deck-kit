@@ -6,7 +6,7 @@
 - 결과물은 폴더 하나(`presentation`)입니다. 인터넷 없이 브라우저로 열고, 공유할 때는 zip으로 보냅니다.
 - 디자인 원칙은 실제 덱에서 받은 피드백으로 계속 다듬습니다(`DESIGN.md`).
 
-![부품 예시 — 견본 덱 17장](sample-slides.jpg)
+![부품 예시 — 견본 덱 16장](sample-slides.jpg)
 
 ## 설치 (처음 한 번)
 
@@ -68,7 +68,7 @@
 | v1.3.3 | 2026-10-22 | 저장소를 회사 조직으로 옮김: `GG-AX/deck-kit`. 이미 `Anton-huh/deck-kit`으로 설치했으면 마켓플레이스를 지우고 새 주소로 다시 추가한다 |
 | v1.3.4 | 2026-10-26 | 덱 3개(Target RTW·AEO·Nordstrom) 피드백 반영(`docs` 3차). 견본 제목의 인라인 글자 크기를 `.title.l/.m/.s`로, lint가 인라인 제목 크기·옛 엔진(WARN)을 알리고 설치본 줄바꿈 차이로 거짓 ERR를 내지 않음, `used_assets.py`가 백업이 쓰는 파일을 지키게 함. DESIGN: 범주 9개 넘는 차트 구분 팔레트·요청자 지정 색, 사진 높이·머리선 맞추기, 12px 하한, 누끼 밝기. SKILL: 자체 검수(마무리 장·숫자 검산·글자 크기), 피드백 원문 저장, 예전 키트 덱 다루기, zip은 presentation 밖에. 엔진 v1.3 |
 | v1.4.0 | 2026-10-26 | 부품 20여 개를 키트로(덱마다 다시 만들던 것): 표 `.tbl`, 숫자 `.stat`·`.kpi`, 제목 줄 `.hd`, 상태 줄 `.tl-row`, 추세 화살표 `svg.trend`, Top 5 줄, 한 줄 비율 막대 `.cr.h`, 도넛 가운데 글자·범례 `.chips`, 사진 벽 `.pnl`+`.wall`, 지도 핀 `.pin`, 그림 위 표시 `.pic`, 로고 줄 `.lgs`, 자리표시 `.todo` 등. 견본에 예시 장 3개(`table`·`chart-3`·`map-photos`, 17장), `sample-slides.jpg` 갱신. SKILL: 견본 = 부품 사전(배치는 따라 하지 않음), 다른 덱 폴더를 보거나 복사하지 않음, session.md에 "키트에 없던 것". README를 팀원용 안내로. 엔진 v1.4 |
-| v1.5.0 | 2026-10-26 | 사원용 시험판 — Windows·Edge·개발자 설치에 기대지 않게. 저장소 공개(GitHub 로그인 없이 설치), `/deck-kit:update`가 Python·도구 패키지·캡처용 브라우저까지 설치. 캡처 브라우저를 Playwright Chromium으로(`DECKKIT_BROWSER`로 바꿀 수 있음, 없으면 Chrome·Edge). 스크립트 저장 도우미(`Start Presentation.bat`·`notes_server.ps1`) 제거 — 덱은 .html을 Edge·Chrome으로 열고, 처음 한 번 `assets/notes.js`를 고른다. `motion_run.ps1` → `motion_run.py`. lint가 덱에 남은 .bat·.ps1을 WARN. SKILL·README 경로를 `/`로. 엔진 v1.5 |
+| v1.5.0 | 2026-10-26 | 사원용 시험판 — Windows·Edge·개발자 설치에 기대지 않게. 저장소 공개(GitHub 로그인 없이 설치), `/deck-kit:update`가 Python·도구 패키지·캡처용 브라우저까지 설치. 캡처 브라우저를 Playwright Chromium으로(`DECKKIT_BROWSER`로 바꿀 수 있음, 없으면 Chrome·Edge). 스크립트 저장 도우미(`Start Presentation.bat`·`notes_server.ps1`) 제거 — 덱은 .html을 Edge·Chrome으로 열고, 처음 한 번 `assets/notes.js`를 고른다. `motion_run.ps1` → `motion_run.py`. lint가 덱에 남은 .bat·.ps1을 WARN. SKILL·README 경로를 `/`로. 엔진 v1.5 견본 정리(17 → 16장): 겹치던 장 합침(`chart`+`chart-3`, `photo-steps`+`big-image`), `chart-3` = 조각 많은 구성, 거점 지도를 HTML 핀으로, 빈 칸 메움(DESIGN 여백). 견본 장마다 위쪽에 부품 설명(`data-guide`, H로 숨김) |
 
 ## 엔진 버전 기록
 
@@ -81,4 +81,4 @@
 | v1.2 | 2026-10-22 | 챕터 커버 큰 번호를 외곽선 대신 옅은 채움으로(외곽선이 글꼴 획 겹침을 보였음). 챕터 커버가 있는 기존 덱은 번호 모양이 바뀐다 |
 | v1.3 | 2026-10-26 | 제목 크기 클래스 `.title.l/.m/.s`, 구분 팔레트 토큰 `--cat-1`…`--cat-12`. 기존 덱 화면은 그대로 |
 | v1.4 | 2026-10-26 | 부품 CSS 추가(위 키트 v1.4.0). 새 클래스만 더해서 기존 덱 화면은 그대로 |
-| v1.5 | 2026-10-26 | 저장 도우미(`notes_server.ps1`) 연결 삭제 — 저장은 Edge·Chrome 파일 선택(처음 한 번, 기억됨), 그 밖 브라우저는 내려받기. 화면은 그대로 |
+| v1.5 | 2026-10-26 | 저장 도우미(`notes_server.ps1`) 연결 삭제 — 저장은 Edge·Chrome 파일 선택(처음 한 번, 기억됨), 그 밖 브라우저는 내려받기. 화면은 그대로. 견본 장(`data-sample`)의 `data-guide`를 상단 바에 표시, H 키로 숨김 |

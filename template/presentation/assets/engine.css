@@ -57,6 +57,10 @@ img,video{display:block;max-width:100%}
 .topbar .div{width:1px;height:16px;background:rgba(255,255,255,.3)}
 .topbar .t{font-size:12px;font-weight:600;color:rgba(255,255,255,.82);letter-spacing:.01em}
 .topbar .chap{margin-left:auto;font:600 11px/1 var(--mono);letter-spacing:.18em;color:var(--light);text-transform:uppercase}
+.topbar .guide{margin-left:28px;max-width:62%;font-size:12px;line-height:1.45;color:rgba(255,255,255,.86);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:5px 11px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.topbar .guide:empty,.noguide .topbar .guide{display:none}
+.topbar .guide b{font-weight:700;color:#fff;margin-right:10px}
+.topbar .guide kbd{font:600 10px var(--mono);letter-spacing:.06em;margin-left:10px;opacity:.55}
 .progress{position:fixed;top:0;left:0;height:3px;background:var(--light);z-index:6;transition:width .4s var(--ease)}
 .bar-bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px;color:rgba(255,255,255,.75);font:500 12px var(--mono);letter-spacing:.1em}
 .bar-bottom button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:5px 14px;font:600 11px var(--mono);letter-spacing:.08em;cursor:pointer}

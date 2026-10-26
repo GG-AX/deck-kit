@@ -445,6 +445,9 @@
       else if (!on) s.classList.remove("active");
     });
     var chap = document.getElementById("chap"); if (chap) chap.textContent = chapter(slides[idx]);
+    // sample slides only: data-guide="name|when to use — what is in it", shown in the top bar (H hides it)
+    var guide = document.getElementById("guide"), g = slides[idx].hasAttribute("data-sample") && (slides[idx].getAttribute("data-guide") || "").split("|");
+    if (guide) guide.innerHTML = g && g[0] ? "<b>견본 · " + esc(g[0]) + "</b>" + esc(g[1] || "") + "<kbd>H 숨기기</kbd>" : "";
     document.getElementById("ctr").textContent = (idx + 1) + " / " + slides.length;
     document.getElementById("prog").style.width = ((idx + 1) / slides.length * 100) + "%";
     document.querySelectorAll("#dots i[data-k]").forEach(function (d) { d.classList.toggle("on", +d.getAttribute("data-k") === idx); });
@@ -664,6 +667,7 @@
     else if (k === "g" || k === "G") toggleOverview();
     else if (k === "p" || k === "P") openPresenter();
     else if (k === "d" || k === "D") perfMeter();
+    else if (k === "h" || k === "H") document.body.classList.toggle("noguide");
   }
 
   /* ---------- chrome: background, bars, report overlay, overview ----------
@@ -676,7 +680,7 @@
     var stage = deck.closest(".stage") || deck;
     stage.insertAdjacentHTML("beforebegin", '<canvas id="bg"></canvas><div class="scrim"></div><div class="progress" id="prog"></div>' +
       '<div class="topbar">' + (logo ? '<img src="' + esc(logo) + '" alt=""><span class="div"></span>' : "") +
-      (line ? '<span class="t">' + esc(line) + "</span>" : "") + '<span class="chap" id="chap"></span></div>');
+      (line ? '<span class="t">' + esc(line) + "</span>" : "") + '<span class="guide" id="guide"></span><span class="chap" id="chap"></span></div>');
     stage.insertAdjacentHTML("afterend", '<div class="bar-bottom"><button id="prev">‹ PREV</button><div class="dots" id="dots"></div>' +
       '<span id="ctr"></span><button id="next">NEXT ›</button></div><div class="hint">' + KEYS + "</div>" +
       '<div class="overlay" id="overlay"><div class="ob"><b></b><span class="sp"></span><a href="#" target="_blank" rel="noopener">Open in new tab ↗</a>' +

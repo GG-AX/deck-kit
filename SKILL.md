@@ -13,8 +13,8 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | KIT 안 | 무엇 |
 | --- | --- |
 | `template/` | 새 덱 폴더의 양식 — 통째로 복사해서 시작한다 |
-| `template/presentation/deck.html` | **견본 덱 14장** = 부품마다 예시 슬라이드 한 장(내용은 가짜). 정확한 마크업은 여기서 복사한다 |
-| `sample-slides.jpg` | 견본 14장의 모습(번호 = deck.html 순서) |
+| `template/presentation/deck.html` | **견본 덱 16장** = 부품 사전(내용은 가짜). 견본 장의 `data-guide`는 화면 위쪽에 부품 설명을 띄운다(H로 숨김) — 덱에 가져올 때 `data-sample`과 함께 지운다. 정확한 마크업은 여기서 복사한다 |
+| `sample-slides.jpg` | 견본 16장의 모습(번호 = deck.html 순서) |
 | `DESIGN.md` | 디자인 원칙(짧다 — 작업 전에 읽는다) |
 | `tools/` | 캡처·PPT 추출·이미지 손질 등 도구(아래 "도구") |
 
@@ -100,19 +100,18 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `cover` | 표지 | `.title-wrap`: 로고·회사명·제목·날짜·기밀 고지 + 오른쪽 사진 |
 | `video` | 화면 가득 영상 | `.video-full` > `.vbox`(video + `.play`). ▶ 클릭이나 Enter로 재생 |
 | `chapter` | 챕터 커버 | `.divider`: 큰 번호 + 챕터명 + `.agenda`(지금 챕터만 `.on`) |
-| `chart` | 숫자·차트 | 막대 `data-bars`, 트리맵 `data-treemap`, 비율 막대 `.cats`>`.cr`, 카운트업 `data-count` |
+| `chart` | 숫자·차트 | 막대 `data-bars` + 추세 화살표 `svg.trend`(막대와 함께 그려짐)·`.trend-t`, 한 줄 비율 막대 `.cr.h`, 트리맵 `data-treemap` + 아래 `.top5`(로고 순위 줄, `data-logo-area`), 숫자 카드 `.kpi` + 카운트업 `data-count`, 비율 막대 `.cats`>`.cr` |
 | `chart-2` | 추세·구성 | 선 그래프 `data-line`, 누적 막대 `data-stack`(조각 라벨 `"labels":true`), 결론 `.concl` |
 | `logos` | 로고 격자 4×4 | `.logo-grid4 data-logo-area`>`.lg`(img + 상태 캡션 `.note`) — 로고 크기는 엔진이 면적으로 맞춘다 |
-| `kpi` | 숫자 카드 + 도넛 | 카드 안 `.donut`(`data-donut`) + 카운트업, 아래 비율 막대 |
+| `kpi` | 거점 비교 | 지도 `.mapbox` + 번호 핀 `.pin.n`, `.kv`(한 줄 요약), 거점 카드 안 도넛 `.dn-wrap`(`data-donut` + 가운데 `.dn-c` 카운트업), 아래 비율 막대 |
 | `table` | 표 · 숫자 카드 · 상태 줄 | `.hd`(제목 줄 + `.stat`), `.tbl`(병합 칸 `td.g` rowspan, 숫자 `.r`, 소계 `tr.sub`, 합계 `tr.tot`, `.big` `.fill`), `.kpi` 카드, `.tl-rows` > `.tl-row`(칩 색 `--c` = 회색 단계) |
-| `chart-3` | 추세 · 순위 · 조각 많은 구성 | 막대 안 `svg.trend`(추세 화살표, 막대와 함께 그려짐) + `.trend-t`, 한 줄 비율 막대 `.cr.h`, 트리맵 아래 `.top5`(로고 순위 줄, `data-logo-area`), 도넛 `.dn-wrap` + 가운데 `.dn-c`, 범례 `.chips`(`--cat` 색) · `.lgd` |
-| `map-photos` | 지도 · 사진 벽 · 그림 위 표시 | `.mapbox`(`--ar`) + `.pin`(이름표) · `.pin.n`(번호), `.kv`, `.pnl` + `.wall`(같은 높이 `--h`, `.cut` = 배경 지운 사진, `i.br` 줄바꿈), `.pic` + `.box` `.tick` `.tag`(그림 기준 %), `.stp`(번호 단계), `.lgs`(한 줄 `--n`칸 로고), `.todo`(자료 기다리는 자리) |
-| `columns` | 3단 카드 + 결론 | `.rule` 칼럼(제목·`ul.list`·`.hl`) + `.concl` + 출처 `.foot` |
-| `photo-steps` | 사진 + 글 + 단계 | `.figure`(+ 출처 `.src`), `.chip`, 01→05 `.flow` |
+| `chart-3` | 조각 많은 구성(9개 넘음) | 구분 팔레트 `--cat` 도넛 `.dn-wrap` + 가운데 `.dn-c`, 큰 값 범례 `.lgd`, 컬러칩 범례 `.chips`(`--cols`), 결론 `.concl` |
+| `map-photos` | 지도 · 사진 벽 · 그림 위 표시 | `.mapbox`(`--ar`) + `.pin`(이름표) · `.pin.n`(번호), 숫자 줄 `.stat`, `.pnl` + `.wall`(같은 높이 `--h`, `.cut` = 배경 지운 사진, `i.br` 줄바꿈), `.pic` + `.box` `.tick` `.tag`(그림 기준 %), `.stp`(번호 단계), `.lgs`(한 줄 `--n`칸 로고), `.todo`(자료 기다리는 자리) |
+| `columns` | 3단 카드 + 결론 | `.rule` 칼럼(제목·숫자 `.stat`·`ul.list`·`.hl`) + `.concl` + 출처 `.foot` |
+| `photo-steps` | 사진 + 글 + 단계 | `.figure`(+ 출처 `.src`), `.chip`, 01→05 `.flow`. 스크린샷 한 장을 크게 보일 때는 글 칸을 빼고 `.figure`만 키운다 |
 | `collage` | 콜라주 | `data-collage`(칸 좌표, 1192×578 기준) + `data.js`의 portfolio(배경 지운 인물 사진) |
 | `product` | 상품 카드 | `.bs-grid data-bs` + `data.js`의 bestsellers(+ `motion.js` 카드 영상) |
-| `big-image` | 큰 그림 | `.stepline`(단계 표시) + 큰 `.figure` |
-| `report` | 보고서 카드 | `.report`: 미리보기 + `button data-report="reports/…html"` → 같은 화면 위 보고서 창 |
+| `report` | 보고서 카드 | `.stepline`(단계 표시) + `.report`: 미리보기 + `button data-report="reports/…html"` → 같은 화면 위 보고서 창 |
 | `closing` | 마무리 | `.closing`: 로고 + 큰 문장 하나 |
 
 ### 공통 클래스
