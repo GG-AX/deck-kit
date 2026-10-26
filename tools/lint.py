@@ -111,7 +111,7 @@ def engine_ver(p):
 
 deck_v, kit_v = engine_ver(P / "assets" / "engine.js"), engine_ver(KIT / "engine.js")
 older = deck_v and kit_v and deck_v < kit_v   # a deck made with an older kit keeps its engine until it is upgraded on purpose
-for f in ("engine.js", "engine.css", "notes_server.ps1"):
+for f in ("engine.js", "engine.css"):
     a, b = P / "assets" / f, KIT / f
     if a.exists() and b.exists():
         same = a.read_bytes().replace(b"\r\n", b"\n") == b.read_bytes().replace(b"\r\n", b"\n")   # installed copies may be CRLF
@@ -121,6 +121,10 @@ for f in ("engine.js", "engine.css", "notes_server.ps1"):
             add("Engine", "WARN", "%s: deck engine v%d.%d, kit v%d.%d — fine for a deck in progress; to upgrade see SKILL.md" % ((f,) + deck_v + kit_v))
         else:
             add("Engine", "ERR", "%s identical to the kit: False — engine changes belong in deck-kit, deck fixes in deck.css" % f)
+
+old = sorted(p.relative_to(P).as_posix() for p in P.rglob("*") if p.suffix.lower() in (".bat", ".ps1"))
+if old:
+    add("Engine", "WARN", "%s: v1.5부터 안 씀 — 지워도 됨" % ", ".join(old))
 
 # 7. versions
 vr = root / "versions" / "README.md"

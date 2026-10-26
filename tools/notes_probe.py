@@ -1,23 +1,18 @@
 """Check the presenter script (notes) in headless Chromium: editing, drafts, and saving.
 
-usage: python notes_probe.py [deck] [--other DECK] [--save]
+usage: python notes_probe.py [deck] [--other DECK]
   deck     the deck to check (workspace, presentation folder or .html; default: current folder)
   --other  a second deck or copy: its drafts and presenter window must stay separate from the first
-  --save   also save for real through the local helper (Start Presentation.bat's notes_server.ps1),
-           then put notes.js and notes.prev.js back as they were
 Checks: the presenter window (P) shows the slide's notes; an edit is kept as a draft and survives a reload;
 arrow keys typed in the notes do not move slides; the notes follow slide changes.
 Choosing the file to save to needs a real file dialog, so that path is only checked for availability.
 """
 import argparse
 import json
-import subprocess
 import time
-import urllib.request
 
 from deckutil import Chromium, find_html, read_js_data, slide_ids
 
-HELPER = "http://127.0.0.1:47615"
 results = []
 
 
@@ -71,7 +66,6 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("deck", nargs="?")
     ap.add_argument("--other")
-    ap.add_argument("--save", action="store_true")
     a = ap.parse_args()
     html = find_html(a.deck)
     with Chromium() as e:
@@ -110,46 +104,9 @@ def main():
             check("the other copy has no draft", not e.ev("localStorage.getItem(%s)" % json.dumps(o.key + "|notes-draft")))
             check("the presenter windows are separate", o.P != d.P)
 
-        if a.save:
-            save_through_helper(e, d, html)
         e.ev("localStorage.clear()")
     print("%d/%d passed" % (sum(results), len(results)))
     raise SystemExit(0 if all(results) else 1)
-
-
-def save_through_helper(e, d, html):
-    assets = html.parent / "assets"
-    keep = {f: (assets / f).read_bytes() if (assets / f).exists() else None for f in ("notes.js", "notes.prev.js")}
-    helper = subprocess.Popen(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(assets / "notes_server.ps1")],
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    try:
-        ping = lambda: urllib.request.urlopen(HELPER + "/ping", timeout=2).read().decode("utf-8")
-        served = wait(lambda: _try(ping), timeout=15)
-        check("the helper serves this folder", served and served.lower().rstrip("\\") == str(html.parent).lower().rstrip("\\"), served)
-        d.open()
-        d.presenter()
-        d.type("SAVED BY PROBE — 한글 확인")
-        e.ev(d.P + ".getElementById('sv').click()")
-        st = wait(lambda: "Saved" in d.status() and d.status(), timeout=10)
-        check("Save notes reports saved", st and st.startswith("✓"), d.status())
-        text = (assets / "notes.js").read_text(encoding="utf-8")
-        check("notes.js on disk has the edit (Korean kept)", "SAVED BY PROBE — 한글 확인" in text)
-        check("the previous notes.js was kept as notes.prev.js", (assets / "notes.prev.js").exists())
-    finally:
-        _try(lambda: urllib.request.urlopen(HELPER + "/quit", timeout=2).read())
-        helper.wait(10)
-        for f, data in keep.items():                     # put the deck's own files back
-            if data is None:
-                (assets / f).unlink(missing_ok=True)
-            else:
-                (assets / f).write_bytes(data)
-
-
-def _try(fn):
-    try:
-        return fn()
-    except OSError:
-        return None
 
 
 if __name__ == "__main__":

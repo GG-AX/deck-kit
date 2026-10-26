@@ -1,4 +1,4 @@
-/* deck-kit engine v1.4 (2026-10-26) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
+/* deck-kit engine v1.5 (2026-10-26) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
 (function () {
   "use strict";
   var VERSION = "1.0";
@@ -497,19 +497,8 @@
     presStatus();
   }
   /* Saving, in order of preference:
-     1) local helper started by "Start Presentation.bat" (assets/notes_server.ps1): writes notes.js directly, no dialog
-     2) Edge/Chrome file access: notes.js is chosen once per PC; the choice is remembered (IndexedDB)
-     3) other browsers: download notes.js to replace by hand */
-  var NOTE_SRV = "http://127.0.0.1:47615", srvOK = false;   // the helper only saves into the folder it was started from
-  function sameDir(a, b) { return String(a).replace(/[\\\/]+$/, "").toLowerCase() === String(b).replace(/[\\\/]+$/, "").toLowerCase(); }
-  function srv(path, body) {
-    var ctl = window.AbortController ? new AbortController() : null;
-    if (ctl) setTimeout(function () { ctl.abort(); }, 2500);
-    return fetch(NOTE_SRV + path, { method: body ? "POST" : "GET", body: body, headers: body ? { "Content-Type": "text/plain" } : undefined, signal: ctl && ctl.signal })
-      .then(function (r) { return r.text().then(function (t) { if (!r.ok) throw new Error(t || r.status); return t; }); });
-  }
-  srv("/ping").then(function (dir) { srvOK = sameDir(dir, DECK_DIR); presStatus(); }).catch(function () {});
-  setInterval(function () { if (srvOK) srv("/ping").catch(function () {}); }, 30000);   // keeps the helper alive while the deck is open
+     1) Edge/Chrome file access: notes.js is chosen once per PC; the choice is remembered (IndexedDB)
+     2) other browsers: download notes.js to replace by hand */
   function idb(mode, fn) {
     return new Promise(function (ok, no) {
       var q = indexedDB.open(KEY, 1);
@@ -531,50 +520,41 @@
     slides.forEach(function (s) { var k = s.getAttribute("data-src"); if (NOTES[k]) ordered[k] = NOTES[k]; });   // slide order
     for (var k in NOTES) if (!(k in ordered)) ordered[k] = NOTES[k];   // notes of slides taken out of the deck are kept
     var text = "window.DECK_NOTES = " + JSON.stringify({ saved: stamp, notes: ordered }, null, 1) + ";\n";
-    var send = JSON.stringify({ saved: stamp, notes: ordered, root: DECK_DIR });
     function done(msg) { NB.saved = stamp; dirty = false; try { localStorage.removeItem(DRAFT); } catch (e) {} presStatus(msg, true); }
     function fail(e) { if (e && e.name !== "AbortError" && e.message !== "cancel") presStatus("Not saved — " + e.message); }
     presStatus("Saving…");
-    srv("/save", send).then(function () { srvOK = true; done("✓ Saved"); }, function (e) {
-      srvOK = false;
-      if (e && /other copy/.test(e.message)) {
-        // another deck (or another copy of this one) was opened later with its .bat and now owns the helper — do not write into it
-        presStatus("Not saved — another presentation folder was opened later. Close all windows and open this folder's Start Presentation.bat again.");
-        return;
-      }
-      if (!win.showSaveFilePicker) {
-        var a = win.document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([text], { type: "text/javascript" }));
-        a.download = "notes.js";
-        win.document.body.appendChild(a); a.click(); a.remove();
-        done("Downloaded notes.js → replace assets/notes.js in the presentation folder with it");
-        return;
-      }
-      rememberedHandle().then(function (h) {
-        if (!h) return null;
-        // a remembered file is only reused if it is still the notes.js this deck was loaded from (folder not moved/copied)
-        return h.requestPermission({ mode: "readwrite" }).then(function (p) {
-          if (p !== "granted") return null;
-          return h.getFile().then(function (f) { return f.text(); }).then(function (t) {
-            var m = /"saved":\s*"([^"]*)"/.exec(t);
-            return m && m[1] === NB.saved ? h : null;
-          });
-        }).catch(function () { return null; });
-      }).then(function (h) {
-        if (h) return h;
-        presStatus("Choose assets/notes.js in the presentation folder (only once per copy)");
-        return win.showSaveFilePicker({ suggestedName: "notes.js", types: [{ description: "Presenter notes", accept: { "text/javascript": [".js"] } }] }).then(function (h2) {
-          if (h2.name !== "notes.js" && !win.confirm('"' + h2.name + '" is not notes.js — the deck only reads assets/notes.js. Save anyway?')) throw new Error("cancel");
-          return h2;
+    if (!win.showSaveFilePicker) {
+      var a = win.document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([text], { type: "text/javascript" }));
+      a.download = "notes.js";
+      win.document.body.appendChild(a); a.click(); a.remove();
+      done("Downloaded notes.js → replace assets/notes.js in the presentation folder with it");
+      return;
+    }
+    rememberedHandle().then(function (h) {
+      if (!h) return null;
+      // a remembered file is only reused if it is still the notes.js this deck was loaded from (folder not moved/copied)
+      return h.requestPermission({ mode: "readwrite" }).then(function (p) {
+        if (p !== "granted") return null;
+        return h.getFile().then(function (f) { return f.text(); }).then(function (t) {
+          var m = /"saved":\s*"([^"]*)"/.exec(t);
+          return m && m[1] === NB.saved ? h : null;
         });
-      }).then(function (h) {
-        return h.createWritable().then(function (w) { return w.write(text).then(function () { return w.close(); }); }).then(function () {
-          noteHandle = h;
-          idb("readwrite", function (st) { return st.put(h, "notesHandle"); }).catch(function () {});
-          done("✓ Saved");
-        });
-      }).catch(fail);
-    });
+      }).catch(function () { return null; });
+    }).then(function (h) {
+      if (h) return h;
+      presStatus("Choose assets/notes.js in the presentation folder (only once per copy)");
+      return win.showSaveFilePicker({ suggestedName: "notes.js", types: [{ description: "Presenter notes", accept: { "text/javascript": [".js"] } }] }).then(function (h2) {
+        if (h2.name !== "notes.js" && !win.confirm('"' + h2.name + '" is not notes.js — the deck only reads assets/notes.js. Save anyway?')) throw new Error("cancel");
+        return h2;
+      });
+    }).then(function (h) {
+      return h.createWritable().then(function (w) { return w.write(text).then(function () { return w.close(); }); }).then(function () {
+        noteHandle = h;
+        idb("readwrite", function (st) { return st.put(h, "notesHandle"); }).catch(function () {});
+        done("✓ Saved");
+      });
+    }).catch(fail);
   }
   function presStatus(msg, ok) {
     if (!presenter || presenter.closed) return;

@@ -4,7 +4,7 @@ usage: python used_assets.py [deck] [--move]
 used = files the browser loads while every slide is shown (headless Chromium)
      + files named in the deck: HTML src/href/poster/data-report, every "assets/…" path in the deck's
        data scripts (data.js, motion.js, …), url() in engine.css/deck.css
-     + always: the engine files, notes.js(+ notes.prev.js), the save helper, every font and its licence
+     + always: the engine files, notes.js, every font and its licence
      + files a versions\\ backup uses (backups load pictures from the live presentation folder)
 Prints a summary, files that are referenced but missing, and whether card clips play.
 --move puts the unused files in <deck>\\work\\unused_assets\\<same path> (nothing is deleted).
@@ -19,7 +19,7 @@ from pathlib import Path
 import deckutil
 from deckutil import Chromium, count_slides, deck_root, find_html
 
-ALWAYS = {"assets/engine.js", "assets/engine.css", "assets/deck.css", "assets/notes.js", "assets/notes.prev.js", "assets/notes_server.ps1"}
+ALWAYS = {"assets/engine.js", "assets/engine.css", "assets/deck.css", "assets/notes.js"}
 
 
 def dynamic(html, pres):
