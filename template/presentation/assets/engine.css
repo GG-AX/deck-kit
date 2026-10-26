@@ -320,7 +320,7 @@ html.static .tm .tl{opacity:1;animation:none!important}
 html.static .lc-plot svg{clip-path:none;animation:none!important}
 html.static .lc-dot,html.static .lc-end,html.static .stack .tot,html.static .stack .sl{opacity:1;animation:none!important}
 html.static .stack .bars{transform:none;animation:none!important}
-/* ---------- components (v1.4): built first in real decks (Carhartt, Target, AEO, Nordstrom), moved here so decks stop copying each other ---------- */
+/* ---------- components (v1.4): built first in real decks, moved here so decks stop copying each other ---------- */
 /* heading row: title left, something small right (stat, logo, label) */
 .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:14px}
 .hd .title{margin:0}
