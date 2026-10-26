@@ -543,7 +543,7 @@
       }).catch(function () { return null; });
     }).then(function (h) {
       if (h) return h;
-      presStatus("Choose assets/notes.js in the presentation folder (only once per copy)");
+      presStatus("Choose " + (/^[A-Za-z]:/.test(DECK_DIR) ? DECK_DIR + "\\assets\\notes.js" : DECK_DIR.replace(/\\/g, "/") + "/assets/notes.js") + " (only once per copy)");   // Mac paths keep their slashes
       return win.showSaveFilePicker({ suggestedName: "notes.js", types: [{ description: "Presenter notes", accept: { "text/javascript": [".js"] } }] }).then(function (h2) {
         if (h2.name !== "notes.js" && !win.confirm('"' + h2.name + '" is not notes.js — the deck only reads assets/notes.js. Save anyway?')) throw new Error("cancel");
         return h2;
