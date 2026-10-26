@@ -3,7 +3,7 @@
 usage: python lint.py [deck]
 Checks: HTML tag balance · slide ids (duplicate, invalid) · leftover samples · referenced files exist ·
 notes.js keys vs slides · deck scripts (work\\, tools\\) compile · work\\*.json parse ·
-deck.css rules defined twice (the later one wins) and classes no slide uses · engine identical to the kit ·
+deck.css rules defined twice (the later one wins) and classes no slide uses · inline title font sizes · engine identical to the kit ·
 versions\\ backups open (their files still exist) · template placeholders left in CLAUDE.md / session.md / FEEDBACK.md / 사용법 (How to use).txt.
 Exit code 1 when there is an ERR line.
 """
@@ -101,13 +101,26 @@ if css_path.exists():
     classes = set(re.findall(r"\.([a-zA-Z][\w-]*)", re.sub(r"url\([^)]*\)", "", body)))
     unused = sorted(c for c in classes - used if not re.search(r"\b%s\b" % re.escape(c), engine))   # engine-made classes count as used
     add("CSS", "WARN" if unused else "OK", "classes in deck.css no slide uses: %d %s" % (len(unused), unused))
+inline = re.findall(r'class="[^"]*\btitle\b[^"]*"[^>]*style="[^"]*font-size', html)
+add("CSS", "WARN" if inline else "OK", "titles with an inline font-size: %d — use .title.l/.m/.s, or one .title rule in deck.css (DESIGN 덱 전체 통일)" % len(inline))
 
 # 6. engine untouched
+def engine_ver(p):
+    m = re.search(rb"engine v(\d+)\.(\d+)", p.read_bytes()[:200]) if p.exists() else None
+    return tuple(map(int, m.groups())) if m else None
+
+deck_v, kit_v = engine_ver(P / "assets" / "engine.js"), engine_ver(KIT / "engine.js")
+older = deck_v and kit_v and deck_v < kit_v   # a deck made with an older kit keeps its engine until it is upgraded on purpose
 for f in ("engine.js", "engine.css", "notes_server.ps1"):
     a, b = P / "assets" / f, KIT / f
     if a.exists() and b.exists():
-        same = a.read_bytes() == b.read_bytes()
-        add("Engine", "OK" if same else "ERR", "%s identical to the kit: %s%s" % (f, same, "" if same else " — engine changes belong in deck-kit, deck fixes in deck.css"))
+        same = a.read_bytes().replace(b"\r\n", b"\n") == b.read_bytes().replace(b"\r\n", b"\n")   # installed copies may be CRLF
+        if same:
+            add("Engine", "OK", "%s identical to the kit: True" % f)
+        elif older:
+            add("Engine", "WARN", "%s: deck engine v%d.%d, kit v%d.%d — fine for a deck in progress; to upgrade see SKILL.md" % ((f,) + deck_v + kit_v))
+        else:
+            add("Engine", "ERR", "%s identical to the kit: False — engine changes belong in deck-kit, deck fixes in deck.css" % f)
 
 # 7. versions
 vr = root / "versions" / "README.md"

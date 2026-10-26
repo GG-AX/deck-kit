@@ -48,8 +48,11 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
      - 글자 넘침·잘림·겹침, 콘솔 오류, 남은 견본 내용
      - 빈 공간: 칸 아래쪽이 비었거나 패널이 내용보다 훨씬 크지 않은가(`DESIGN.md` 여백·위계)
      - 사진: 중요한 부분이 잘리지 않았나, 배경이 다른 상품 사진을 밝기만 바꾸지 않았나(배경 제거)
-     - 같은 종류 그림(사진·로고·국기)의 보이는 크기
+     - 같은 종류 그림(사진·로고·국기)의 보이는 크기, 인물 사진의 높이·머리선·발선
+     - 12px 미만 글자
+     - 챕터 커버·마무리 장이 `DESIGN.md` 슬라이드 구성대로인가(마무리 = 문장 하나 + 로고)
    - 원본과 나란히 볼 것: 숫자·문구, 정보 요소(아이콘·표시 기호), 원본에서 가려진 그림을 쓰지 않았나, 그림 사이 연결선·확대 표시를 살렸나
+   - 숫자 검산: 비율의 합(100%), 합계 = 항목의 합, 금액 = 단가 × 수량. 원본이 틀렸으면 고치지 말고 "원본 문제"에 적는다
    - 덱 전체로 볼 것: 캡처를 한 장에 모아(`sNN.png` 여러 장을 격자로) 같은 종류 슬라이드끼리 제목 형식·칸 크기·핵심 문구 띠가 같은지
    - 마지막으로 `DESIGN.md`를 한 줄씩 다시 읽고 어긋난 곳이 없는지
    - 슬라이드가 많으면 서브에이전트에게 슬라이드를 나눠 맡겨 함께 본다(각자 캡처와 원본을 대조해 문제 목록만 돌려받는다).
@@ -61,8 +64,14 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
    - 자체 검수에서 고친 것과 남은 것
 6. **피드백 반영** — 검수 의견을 받을 때마다 이 순서로 한다.
    1. **백업 먼저**: 코드를 하나라도 고치기 **전에** `python KIT\tools\snapshot.py vN_<이름> "한 줄 설명"`(N = 지금 라이브 번호). 고친 뒤에 백업하면 사본이 옛 덱과 어긋난다.
-   2. **수정 계획 보여 주기**: 피드백을 `FEEDBACK.md`에 적고, 슬라이드별 수정 계획표(슬라이드 · 피드백 · 고칠 방법)를 사용자에게 보여 주고 확인받는다.
-   3. 반영 → 4번 자체 검수 → 고친 것과 남은 것을 보고하고 `FEEDBACK.md` 상태를 고친다.
+   2. **수정 계획 보여 주기**: 받은 피드백 원문(메일·메시지)은 `docs\feedback\`에 날짜 이름으로 저장하고, 피드백을 `FEEDBACK.md`에 적고, 슬라이드별 수정 계획표(슬라이드 · 피드백 · 고칠 방법)를 사용자에게 보여 주고 확인받는다.
+   3. 반영 → 4번 자체 검수 → 고친 것과 남은 것을 보고하고 `FEEDBACK.md` 상태와 `session.md`(백업 번호·슬라이드 수·lint 결과)를 지금 기준으로 고친다.
+
+### 예전 키트로 만든 덱을 이어서 고칠 때
+
+- 엔진은 덱을 만들 때의 버전 그대로 둔다(lint가 WARN으로 알린다). 발표가 코앞이면 올리지 않는다.
+- 올릴 때: `snapshot.py`로 백업 → KIT `template\presentation\assets\`의 `engine.js`·`engine.css`·`notes_server.ps1`을 덱 `assets\`에 덮어쓴다 → `shots.py`로 전 장을 찍어 백업 캡처와 비교한다(KIT `README.md` 엔진 버전 기록에서 바뀐 점을 본다).
+- 덱 `CLAUDE.md`나 덱 도구에 `.claude\skills\deck-kit` 같은 옛 KIT 경로가 있으면 지운다. KIT 도구는 늘 이 스킬을 불러온 뒤 KIT 경로로 실행한다.
 
 ## 규칙
 
@@ -106,6 +115,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 
 - 카드류: `.card` `.rule`(위 굵은 선) `.hl`(강조 한 줄) `.concl`(결론 띠) `.chip` `.tag`
 - 글: `.label`(작은 머리말) `.title` `.sub` `ul.list`
+- 제목 크기: `.title`(30px) · `.title.l`(32) · `.title.m`(24) · `.title.s`(21). **인라인 `font-size`는 쓰지 않는다**(lint가 잡는다). 덱 전체 제목을 작게 하려면 `deck.css`에 `.title{font-size:28px}` 한 줄
 - 배치: `.grid`(+ 인라인 `grid-template-columns`) `.figure` `.src`
 - 흐름: `.flow`(`.st` + `.ar`) `.stepline`
 - 슬라이드 글자 크기: `class="slide roomy"`(크게) / `"slide compact"`(작게)
@@ -131,6 +141,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 
 - 테마는 `engine.css` 맨 위의 토큰이다. HTML에서는 hex 대신 토큰을 쓴다(`var(--key)` `var(--body)` `var(--muted)` `var(--line)` `var(--tile)`).
 - 차트 색 단계는 `--tone-1`(가장 진함)부터 `--tone-9`까지다.
+- 조각이 9개를 넘는 차트만 구분 팔레트 `--cat-1`…`--cat-12`(12 = 기타)를 쓰고 컬러칩 범례를 붙인다. 예: `data-donut='[["Cotton",34,"var(--cat-1)"],…]'`. 테마를 바꿔도 이 색은 그대로다.
 - 기본은 모노톤이다. 테마는 `assets\themes\`의 `navy`(남색)·`warm`(웜 뉴트럴)·`sage`(세이지) 중 하나를 `deck.html`의 주석 처리된 `<link>` 줄로 켠다(배경 애니메이션·차트까지 함께 바뀐다). **사용자가 테마를 정했을 때만** 켠다.
 - 테마 파일은 고치지 않는다. 한 덱만 색을 더 바꾸려면 `deck.css`에서 `:root{…}` 토큰을 덮어쓴다.
 - 글꼴은 Inter(영문)·JetBrains Mono(라벨)·Pretendard(한글, 자동)다.
@@ -144,7 +155,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `snapshot.py vN_<이름> "설명" [덱]` | 피드백 반영 **전** 지금 덱 코드를 `versions\vN_<이름>\`에 백업하고 `versions\README.md` 표에 줄을 더한다 |
 | `extract.py <파일.pptx> [--deck 덱]` | PPT → 슬라이드별 글·노트·그림(`work\manifest.json`), 그림·내장 보고서는 `presentation\`에. 그림은 PPT에서 잘린 대로, SVG 그림은 .svg로. 읽지 못한 그림은 건너뛰고 끝에 목록 |
 | `images.py web｜cut｜trim｜fit <이미지…> --out 폴더` | 웹용 크기 · 배경 제거(투명) · 로고 여백 자르기 · 인물을 같은 크기 캔버스에 |
-| `used_assets.py [덱] [--move]` | 안 쓰는 파일·빠진 파일 찾기(`--move`: `work\unused_assets\`로 옮김). `versions\` 백업이 쓰는 파일은 모르니, 옮긴 뒤 `lint.py`로 백업을 확인한다 |
+| `used_assets.py [덱] [--move]` | 안 쓰는 파일·빠진 파일 찾기(`--move`: `work\unused_assets\`로 옮김). `versions\` 백업이 쓰는 파일은 사용 중으로 친다 |
 | `dedupe_presentation.py [덱] [--dry]` | 똑같은 파일 정리 |
 | `notes_probe.py [덱] [--save]` | 발표자 창·스크립트 저장 시험 |
 | `motion_run.ps1 -Plan plan.json [-DryRun]` | Higgsfield로 카드 영상 생성 — **크레딧. 먼저 `-DryRun`, 사용자 확인 후** |
@@ -157,4 +168,4 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 
 - 열기: `presentation\Start Presentation.bat` 더블클릭. 이렇게 열어야 스크립트가 바로 저장된다.
 - 키: ← → 이동 · F 전체 화면 · G 전체 보기 · P 발표자 창(스크립트 편집, Ctrl+S 저장) · Enter 영상 재생
-- 공유: `presentation` 폴더를 통째로 zip으로 보낸다. 자세한 안내는 폴더 안 `사용법 (How to use).txt`에 있다.
+- 공유: `presentation` 폴더를 통째로 zip으로 보낸다. zip은 `presentation` **밖**(덱 폴더 `work\` 등)에 만든다 — 안에 두면 다음 zip에 zip이 들어간다. 자세한 안내는 폴더 안 `사용법 (How to use).txt`에 있다.

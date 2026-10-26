@@ -22,6 +22,9 @@
   --track:var(--fill);       /* donut ring behind the parts */
   --photo-bg:var(--tile);    /* behind product photos */
   --panel-alt:#E8E8EB;       /* collage panel "bg":"alt" */
+  /* categorical colours: only for a chart with more than 9 parts the greys cannot tell apart (DESIGN 강조색). Muted, no red; 12 = Other */
+  --cat-1:#3B5B7A;--cat-2:#C08A3E;--cat-3:#5E8C6A;--cat-4:#8A6FA8;--cat-5:#4F9A9A;--cat-6:#B5794F;
+  --cat-7:#7A8B3C;--cat-8:#6C7A99;--cat-9:#A3895F;--cat-10:#4D6B5C;--cat-11:#9C7B9C;--cat-12:#8E8E93;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--night);color:var(--ink);font-family:var(--ff);overflow:hidden;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word}
@@ -298,6 +301,8 @@ ul.list li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:
 .roomy ul.list li::before{top:10px}
 .roomy p{font-size:19px;line-height:1.5}
 .roomy .title{font-size:28px}
+/* title sizes: use these instead of an inline font-size (one look per kind of title across the deck) */
+.title.l{font-size:32px}.title.m{font-size:24px}.title.s{font-size:21px}
 .compact ul.list{gap:4px}
 .compact ul.list li{font-size:14.5px;line-height:1.32}
 .compact ul.list li::before{top:7px}

@@ -1,4 +1,4 @@
-/* deck-kit engine v1.2 (2026-10-22) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
+/* deck-kit engine v1.3 (2026-10-26) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
 (function () {
   "use strict";
   var VERSION = "1.0";

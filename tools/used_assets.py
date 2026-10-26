@@ -5,6 +5,7 @@ used = files the browser loads while every slide is shown (headless Edge)
      + files named in the deck: HTML src/href/poster/data-report, every "assets/…" path in the deck's
        data scripts (data.js, motion.js, …), url() in engine.css/deck.css
      + always: the engine files, notes.js(+ notes.prev.js), the save helper, every font and its licence
+     + files a versions\\ backup uses (backups load pictures from the live presentation folder)
 Prints a summary, files that are referenced but missing, and whether card clips play.
 --move puts the unused files in <deck>\\work\\unused_assets\\<same path> (nothing is deleted).
 """
@@ -55,17 +56,22 @@ def relative(pres, path):
         return None
 
 
-def static(html, pres):
-    keep = set(ALWAYS)
-    text = html.read_text(encoding="utf-8")
+def refs(html):
+    """Paths (relative to presentation\\) named in a deck HTML and in the data scripts next to it."""
+    keep, text = set(), html.read_text(encoding="utf-8")
     for a, b in re.findall(r'(?<!data-)(?:src|href|poster)="([^"]+)"|data-report="([^"]+)"', text):
         r = a or b
         if not re.match(r"^(https?:|#|data:|\.\./)", r):
             keep.add(urllib.parse.unquote(r.split("?")[0]))
     keep |= set(re.findall(r'(assets/[^"\'\s)<>]+\.\w{2,5})', text))
-    for js in (pres / "assets").glob("*.js"):
+    for js in (html.parent / "assets").glob("*.js"):
         if js.name != "engine.js":
             keep |= set(re.findall(r'"(assets/[^"]+)"', js.read_text(encoding="utf-8")))
+    return keep
+
+
+def static(html, pres):
+    keep = set(ALWAYS) | refs(html)
     for css in ("engine.css", "deck.css"):
         f = pres / "assets" / css
         if f.exists():
@@ -86,6 +92,11 @@ def main():
     pres = html.parent
     dyn, failed, playing = dynamic(html, pres)
     keep = dyn | static(html, pres)
+    backup = set()
+    for b in (deck_root(html) / "versions").glob("*/*.html"):   # a backup's <base> points at the live presentation folder
+        backup |= refs(b)
+    print("kept for versions backups:", len(backup - keep))
+    keep |= backup
     all_files = [p.relative_to(pres).as_posix() for p in (pres / "assets").rglob("*") if p.is_file()]
     unused = sorted(f for f in all_files if f not in keep)
     size = sum((pres / f).stat().st_size for f in unused)
