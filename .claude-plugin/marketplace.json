@@ -1,8 +1,18 @@
 {
   "name": "gg-ax",
-  "owner": { "name": "GG AX Team" },
+  "owner": {
+    "name": "GG AX Team"
+  },
   "description": "GG AX 팀 사내 플러그인",
   "plugins": [
-    { "name": "deck-kit", "source": "./", "description": "HTML 발표 덱 키트" }
+    { "name": "deck-kit", "source": "./", "description": "HTML 발표 덱 키트" },
+    {
+      "name": "project-notion",
+      "source": {
+        "source": "github",
+        "repo": "GG-AX/project-notion"
+      },
+      "description": "개발 프로젝트 노션 관리 (AX 팀용, 비공개 저장소)"
+    }
   ]
 }
