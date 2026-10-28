@@ -7,8 +7,9 @@ already in that log is never submitted again (no double spending). Finished clip
 usage: python motion_run.py --plan plan.json [--plan more.json] [--deck DIR] [--dry-run]
   --dry-run  only lists what would be submitted and the credits written in the plan - nothing is sent
 plan.json (UTF-8), paths relative to the deck folder:
-  [ { "case": "M01", "image": "source/look1.png", "prompt": "...", "end_image": true } ]
-  end_image: end on the start image (the clip loops back without a jump).
+  [ { "case": "M01", "image": "source/look1.png", "prompt": "upper" } ]
+  prompt: a fixed prompt key from motion_prompts.json (full / upper / lower) - write your own text only if none fits.
+  end_image: end on the start image (less drift / zoom-in). Default: the prompt key's value, otherwise off.
   Optional per case: "model", "aspect_ratio", "duration", "resolution", "credits" - otherwise the MODELS entry below.
   Default model: kling4_0 (Kling 4.0). Any other Higgsfield video model works if its options are written in the plan.
 """
@@ -35,6 +36,7 @@ MODELS = {
                      "args": ["--generate_audio", "false"]},
 }
 DEFAULT_MODEL = "kling4_0"
+PROMPTS = json.loads((Path(__file__).with_name("motion_prompts.json")).read_text(encoding="utf-8"))
 
 
 def opt(p, name, default):
@@ -72,6 +74,9 @@ def main():
                 jobs.append({"case": p["case"], "job": old["job"]})
                 continue
             img = root / p["image"]
+            fixed = PROMPTS.get(p["prompt"], {})
+            prompt = fixed.get("prompt", p["prompt"])
+            end = p["end_image"] if "end_image" in p else fixed.get("end_image", False)
             model = opt(p, "model", DEFAULT_MODEL)
             m_opt = MODELS.get(model, {})
             ar, dur = opt(p, "aspect_ratio", m_opt.get("aspect_ratio", "auto")), opt(p, "duration", m_opt.get("duration", 5))
@@ -81,11 +86,12 @@ def main():
                 stop = True
                 break
             if a.dry_run:
-                print("%s: %s %s %ss %s, image %s, credits %s" % (p["case"], model, ar, dur, res, p["image"], credits or "?"))
+                print("%s: %s %s %ss %s, prompt %s, end_image %s, image %s, credits %s" % (
+                    p["case"], model, ar, dur, res, p["prompt"] if fixed else "(own text)", end, p["image"], credits or "?"))
                 total += float(credits or 0)
                 continue
-            extra = (["--end-image", str(img)] if p.get("end_image") else []) + m_opt.get("args", [])
-            r = subprocess.run([cli, "generate", "create", model, "--start-image", str(img), *extra, "--prompt", p["prompt"],
+            extra = (["--end-image", str(img)] if end else []) + m_opt.get("args", [])
+            r = subprocess.run([cli, "generate", "create", model, "--start-image", str(img), *extra, "--prompt", prompt,
                                 "--aspect_ratio", str(ar), "--duration", str(dur), "--resolution", str(res), "--json"],
                                capture_output=True, text=True, encoding="utf-8", errors="replace")
             raw = r.stdout + r.stderr
@@ -95,7 +101,7 @@ def main():
                 stop = True
                 break
             entries = read_log() + [{"case": p["case"], "job": m.group(0), "model": model, "prompt": p["prompt"], "credits": credits,
-                                     "end_image": bool(p.get("end_image")), "image": p["image"],
+                                     "end_image": bool(end), "image": p["image"],
                                      "out": "ai/motion/out/%s.mp4" % p["case"], "date": time.strftime("%Y-%m-%d")}]
             log.parent.mkdir(parents=True, exist_ok=True)
             log.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")

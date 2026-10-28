@@ -1,0 +1,17 @@
+{
+  "full": {
+    "use": "full body - head to feet",
+    "end_image": false,
+    "prompt": "Fashion lookbook model shot. The model holds the pose with clearly visible natural movement: a gentle weight shift, a slight turn of the torso and head, a soft blink, hands relaxing. The garment keeps its exact shape, color, print and details; the fabric moves naturally. Static locked-off camera, no zoom, no pan. Plain studio background unchanged. Photorealistic."
+  },
+  "upper": {
+    "use": "upper body - tops, coats (head to thigh)",
+    "end_image": true,
+    "prompt": "Fashion lookbook upper-body shot. Keep the exact framing: the same upper-body crop, and no more of the body is revealed - do not show the legs or any new clothing below the frame edge. The whole head stays inside the frame. The model moves subtly and naturally: a slight sway of the shoulders, a small turn of the head, a soft blink, relaxed hands. The garment keeps its exact shape, color, print and details; the fabric moves naturally. Static locked-off camera, no zoom, no pan. Plain studio background unchanged. Photorealistic."
+  },
+  "lower": {
+    "use": "lower body - skirts, pants (waist to feet)",
+    "end_image": true,
+    "prompt": "Fashion lookbook lower-body shot. Keep the exact framing: the same crop from the waist down - do not reveal the face, the upper body or anything above the top frame edge, and the feet stay inside the frame. The model stays in place without walking: a gentle weight shift from one leg to the other, a small relaxed movement of the hands at the sides. The garment keeps its exact shape, color, print and details; the fabric of the skirt or trousers sways naturally with the movement. Static locked-off camera, no zoom, no pan. Background unchanged. Photorealistic."
+  }
+}

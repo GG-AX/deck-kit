@@ -149,6 +149,30 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 - 테마 파일은 고치지 않는다. 한 덱만 색을 더 바꾸려면 `deck.css`에서 `:root{…}` 토큰을 덮어쓴다.
 - 글꼴은 Inter(영문)·JetBrains Mono(라벨)·Pretendard(한글, 자동)다.
 
+## 카드 영상 만들기 — 상품 카드(`product`)
+
+베스트셀러 카드는 되도록 짧은 영상(소리 없이 반복)으로 낸다. 영상이 없는 카드는 사진 그대로 보인다(영상을 못 만들거나 실패해도 그대로 둔다). 카드 하나의 순서:
+
+1. **라이브러리 확인** — `motion_lib.py find --key <스타일 번호> --image <카드 사진> --deck <덱> --case <카드>`. 있으면 `ai/motion/out/<카드>.mp4`로 복사되니 6번으로. 라이브러리가 설정되지 않았거나 접근할 수 없으면 건너뛴다
+2. **사진 준비** — 시작 이미지 = 카드에 보일 사진 그대로
+   - 사진 종류를 정한다: 전신(머리~발) `full` · 상반신(머리~허벅지, 상의·코트) `upper` · 하반신(허리~발, 스커트·바지) `lower`. 여러 명 한 장·옷만 찍은 사진은 영상으로 만들지 않는다(움직임이 약하거나 맞는 프롬프트가 없음)
+   - 같은 장의 카드는 인물 크기를 맞춘다: `images.py cut` → `images.py fit --size 900x1200 --bg #RRGGBB`(배경 제거가 이상하면 원본을 카드 비율로 잘라 쓴다)
+   - 짧은 변 600px 이상이 좋다(낮아도 무늬가 유지되면 쓴다). 색 띠로 여백을 채우지 않는다
+   - 머리·발이 잘려 종류에 안 맞으면 AI로 바깥을 채울 수 있다(크레딧 — 사용자 확인 후). 채운 뒤 원래 픽셀을 다시 덮어 사람·옷은 원본 그대로 둔다
+3. **plan 쓰기** — `ai/motion/plan.json`에 카드마다 `{"case", "image", "prompt": "full|upper|lower"}`. 프롬프트는 `tools/motion_prompts.json`의 고정 문장을 쓴다(직접 쓰지 않는다). 상반신·하반신은 끝 장면을 시작 이미지로 맞춘다(자동, 화면이 다가가는 것을 줄임)
+4. **확인받기** — `motion_run.py --plan … --dry-run`의 목록·크레딧을 보여 주고 OK를 받는다
+5. **생성** — `motion_run.py --plan …`. 모델·옵션은 고르지 않는다: 기본 모델(`MODELS`, 지금 Kling 4.0)을 쓴다. 모델을 바꾸는 것은 키트 변경(AX 팀이 같은 사진으로 비교한 뒤 `MODELS`를 고침)
+6. **결과 확인** — `motion_post.py`가 만드는 3장 띠(`work/motion_frames/`)와 영상을 보고 아래를 모두 통과해야 쓴다
+   - 옷의 모양·색·무늬·로고가 원본과 같다
+   - 없던 몸·옷이 생기지 않았다(상반신에 다리·하의, 하반신에 얼굴, 손가락 수)
+   - 얼굴·손이 어색하지 않다, 사람이 걷거나 자리를 옮기지 않는다
+   - 카메라가 고정이다(확대·이동 없음). 조금 다가가면 `--box`로 맞출 수 있는지 본다
+   - 움직임이 보이되 과하지 않다, 반복 이음새가 튀지 않는다
+   - 실패 → 같은 설정으로 한 번 다시(크레딧 — 확인 후). 또 실패 → 그 카드는 사진으로 두고 사유를 사용자에게 알린다. 업로드 오류·시간 초과는 품질 실패가 아니다: 로그의 job으로 다시 받는다
+7. **붙이기·저장** — `motion_post.py <clip> --image <카드 사진> --box <카드 비율> --link`로 반복 영상 + motion.js 연결. 통과한 원본 클립은 `motion_lib.py add --key <스타일 번호> --image … --clip ai/motion/out/<카드>.mp4 --prompt <종류> --model <모델>`로 라이브러리에 넣는다
+
+원본 사진 출처가 바이어·리테일러 사이트면 AI 영상은 내부 미팅용이다 — 외부 공유용 덱이면 사용자에게 먼저 묻는다.
+
 ## 도구 — `python KIT/tools/<도구>` (인자로 덱 폴더를 주거나, 덱 폴더에서 실행)
 
 | 도구 | 쓰임 |
@@ -163,6 +187,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `notes_probe.py [덱]` | 발표자 창·스크립트 저장 시험 |
 | `motion_run.py --plan plan.json [--dry-run]` | Higgsfield로 카드 영상 생성(기본 Kling 4.0 `kling4_0`, 5초 720p) — **크레딧. 먼저 `--dry-run`, 사용자 확인 후** |
 | `motion_post.py <clip.mp4> --image … [--box 280:450] [--link]` | 영상을 끊김 없는 반복 영상으로 만들고 motion.js에 연결 |
+| `motion_lib.py find｜add --key <스타일 번호> …` | 공용 영상 라이브러리에서 찾아 쓰기 · 새 영상 넣기. 라이브러리 위치는 `LIBRARY` 줄(또는 `DECKKIT_MOTION_LIB`), 없거나 접근 못 하면 건너뜀 |
 | `anim_probe.py` · `perf_probe.py` | 애니메이션 흔들림 · 재생 성능 측정 |
 
 필요한 것: Python 3 + `pip install pillow websocket-client playwright`(배경 제거는 numpy·scipy·rembg, PPT 추출은 olefile) + `python -m playwright install chromium`(캡처용 브라우저, 약 150MB, 한 번), 영상 작업은 ffmpeg.
