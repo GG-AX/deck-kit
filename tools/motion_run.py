@@ -7,9 +7,10 @@ already in that log is never submitted again (no double spending). Finished clip
 usage: python motion_run.py --plan plan.json [--plan more.json] [--deck DIR] [--dry-run]
   --dry-run  only lists what would be submitted and the credits written in the plan - nothing is sent
 plan.json (UTF-8), paths relative to the deck folder:
-  [ { "case": "M01", "image": "source/look1.png", "prompt": "...", "end_image": true,
-      "model": "seedance_2_0", "aspect_ratio": "3:4", "duration": 5, "resolution": "720p", "credits": 22.5 } ]
-  end_image: end on the start image (the clip loops back without a jump). Defaults: the values above.
+  [ { "case": "M01", "image": "source/look1.png", "prompt": "...", "end_image": true } ]
+  end_image: end on the start image (the clip loops back without a jump).
+  Optional per case: "model", "aspect_ratio", "duration", "resolution", "credits" - otherwise the MODELS entry below.
+  Default model: kling4_0 (Kling 4.0). Any other Higgsfield video model works if its options are written in the plan.
 """
 import argparse
 import json
@@ -25,6 +26,15 @@ from pathlib import Path
 import deckutil  # noqa: F401  (utf-8 console output)
 
 UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+# options each model takes (`higgsfield model get <model>`); credits are for 5 s at 720p,
+# shortcut: credits are copied from `higgsfield generate cost` on 2026-10-28, re-check when prices change
+MODELS = {
+    "kling4_0": {"aspect_ratio": "auto", "duration": 5, "resolution": "720p", "credits": 11.25,
+                 "args": ["--mode", "image-to-video"]},     # no 3:4 - auto keeps the start image's shape
+    "seedance_2_0": {"aspect_ratio": "3:4", "duration": 5, "resolution": "720p", "credits": 22.5,
+                     "args": ["--generate_audio", "false"]},
+}
+DEFAULT_MODEL = "kling4_0"
 
 
 def opt(p, name, default):
@@ -62,8 +72,10 @@ def main():
                 jobs.append({"case": p["case"], "job": old["job"]})
                 continue
             img = root / p["image"]
-            model, ar, dur = opt(p, "model", "seedance_2_0"), opt(p, "aspect_ratio", "3:4"), opt(p, "duration", 5)
-            res, credits = opt(p, "resolution", "720p"), opt(p, "credits", None)
+            model = opt(p, "model", DEFAULT_MODEL)
+            m_opt = MODELS.get(model, {})
+            ar, dur = opt(p, "aspect_ratio", m_opt.get("aspect_ratio", "auto")), opt(p, "duration", m_opt.get("duration", 5))
+            res, credits = opt(p, "resolution", m_opt.get("resolution", "720p")), opt(p, "credits", m_opt.get("credits"))
             if not img.exists():
                 print("%s image not found: %s - stopping" % (p["case"], img))
                 stop = True
@@ -72,10 +84,9 @@ def main():
                 print("%s: %s %s %ss %s, image %s, credits %s" % (p["case"], model, ar, dur, res, p["image"], credits or "?"))
                 total += float(credits or 0)
                 continue
-            extra = ["--end-image", str(img)] if p.get("end_image") else []
+            extra = (["--end-image", str(img)] if p.get("end_image") else []) + m_opt.get("args", [])
             r = subprocess.run([cli, "generate", "create", model, "--start-image", str(img), *extra, "--prompt", p["prompt"],
-                                "--aspect_ratio", str(ar), "--duration", str(dur), "--resolution", str(res),
-                                "--generate_audio", "false", "--json"],
+                                "--aspect_ratio", str(ar), "--duration", str(dur), "--resolution", str(res), "--json"],
                                capture_output=True, text=True, encoding="utf-8", errors="replace")
             raw = r.stdout + r.stderr
             m = UUID.search(r.stdout)   # without --wait the CLI prints just the new job id(s): ["<uuid>"]

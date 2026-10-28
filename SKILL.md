@@ -161,7 +161,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `used_assets.py [덱] [--move]` | 안 쓰는 파일·빠진 파일 찾기(`--move`: `work/unused_assets/`로 옮김). `versions/` 백업이 쓰는 파일은 사용 중으로 친다 |
 | `dedupe_presentation.py [덱] [--dry]` | 똑같은 파일 정리 |
 | `notes_probe.py [덱]` | 발표자 창·스크립트 저장 시험 |
-| `motion_run.py --plan plan.json [--dry-run]` | Higgsfield로 카드 영상 생성 — **크레딧. 먼저 `--dry-run`, 사용자 확인 후** |
+| `motion_run.py --plan plan.json [--dry-run]` | Higgsfield로 카드 영상 생성(기본 Kling 4.0 `kling4_0`, 5초 720p) — **크레딧. 먼저 `--dry-run`, 사용자 확인 후** |
 | `motion_post.py <clip.mp4> --image … [--box 280:450] [--link]` | 영상을 끊김 없는 반복 영상으로 만들고 motion.js에 연결 |
 | `anim_probe.py` · `perf_probe.py` | 애니메이션 흔들림 · 재생 성능 측정 |
 
