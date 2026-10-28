@@ -11,8 +11,8 @@
 ## 설치 (처음 한 번)
 
 1. 플러그인 설치
-   - **VS Code**: 입력창에 `/plug` → **Manage plugins** → **Marketplaces** 탭 → 칸에 `GG-AX/deck-kit` → **Add**. 그다음 **Plugins** 탭에서 `deck-kit`을 찾아 설치합니다.
-   - **터미널**(Claude Code CLI): `claude plugin marketplace add GG-AX/deck-kit` → `claude plugin install deck-kit@gg-ax`
+   - **VS Code**: 입력창에 `/plug` → **Manage plugins** → **Marketplaces** 탭 → 칸에 `GG-AX/plugins` → **Add**. 그다음 **Plugins** 탭에서 `deck-kit`을 찾아 설치합니다.
+   - **터미널**(Claude Code CLI): `claude plugin marketplace add GG-AX/plugins` → `claude plugin install deck-kit@gg-ax`
 2. `/reload-plugins`를 입력한 뒤 **`/deck-kit:update`를 한 번** 실행합니다. 자동 업데이트가 켜집니다(VS Code 화면에는 이 스위치가 없습니다). 그 뒤로는 Claude Code를 시작할 때 새 버전을 받습니다.
 3. 예전에 `~/.claude/skills/deck-kit`에 복사해 둔 키트가 있으면 지웁니다(두 벌이 겹칩니다).
 
@@ -70,6 +70,7 @@
 | v1.4.0 | 2026-10-26 | 부품 20여 개를 키트로(덱마다 다시 만들던 것): 표 `.tbl`, 숫자 `.stat`·`.kpi`, 제목 줄 `.hd`, 상태 줄 `.tl-row`, 추세 화살표 `svg.trend`, Top 5 줄, 한 줄 비율 막대 `.cr.h`, 도넛 가운데 글자·범례 `.chips`, 사진 벽 `.pnl`+`.wall`, 지도 핀 `.pin`, 그림 위 표시 `.pic`, 로고 줄 `.lgs`, 자리표시 `.todo` 등. 견본에 예시 장 3개(`table`·`chart-3`·`map-photos`, 17장), `sample-slides.jpg` 갱신. SKILL: 견본 = 부품 사전(배치는 따라 하지 않음), 다른 덱 폴더를 보거나 복사하지 않음, session.md에 "키트에 없던 것". README를 팀원용 안내로. 엔진 v1.4 |
 | v1.5.0 | 2026-10-26 | 사원용 시험판 — Windows·Edge·개발자 설치에 기대지 않게. 저장소 공개(GitHub 로그인 없이 설치), `/deck-kit:update`가 Python·도구 패키지·캡처용 브라우저까지 설치. 캡처 브라우저를 Playwright Chromium으로(`DECKKIT_BROWSER`로 바꿀 수 있음, 없으면 Chrome·Edge). 스크립트 저장 도우미(`Start Presentation.bat`·`notes_server.ps1`) 제거 — 덱은 .html을 Edge·Chrome으로 열고, 처음 한 번 `assets/notes.js`를 고른다. `motion_run.ps1` → `motion_run.py`. lint가 덱에 남은 .bat·.ps1을 WARN. SKILL·README 경로를 `/`로. 엔진 v1.5 견본 정리(17 → 16장): 겹치던 장 합침(`chart`+`chart-3`, `photo-steps`+`big-image`), `chart-3` = 조각 많은 구성, 거점 지도를 HTML 핀으로, 빈 칸 메움(DESIGN 여백). 견본 장마다 위쪽에 부품 설명(`data-guide`, H로 숨김) |
 | v1.5.1 | 2026-10-26 | 공개 저장소라 문서·주석에서 바이어 이름을 뺌(DESIGN "나온 곳" = "실전 덱", README 기록, engine.css 주석 한 줄). 동작은 그대로 |
+| v1.5.2 | 2026-10-28 | 플러그인 목록(마켓플레이스 `gg-ax`)을 `GG-AX/plugins`로 옮김 — `/deck-kit:update`가 옛 주소(`GG-AX/deck-kit`)를 자동으로 바꿈. 카드 영상: 기본 모델 Kling 4.0(`kling4_0`, Seedance 2.0은 plan에서), 고정 프롬프트(`motion_prompts.json` full·upper·lower), 공용 영상 라이브러리(`motion_lib.py`, 위치 설정 전에는 건너뜀), SKILL "카드 영상 만들기"(사진 준비·결과 확인 기준). 엔진은 그대로 |
 
 ## 엔진 버전 기록
 

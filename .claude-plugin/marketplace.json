@@ -9,8 +9,8 @@
     {
       "name": "project-notion",
       "source": {
-        "source": "github",
-        "repo": "GG-AX/project-notion"
+        "source": "url",
+        "url": "https://github.com/GG-AX/project-notion.git"
       },
       "description": "개발 프로젝트 노션 관리 (AX 팀용, 비공개 저장소)"
     }

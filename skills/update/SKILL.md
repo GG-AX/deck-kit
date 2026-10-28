@@ -6,7 +6,8 @@ disable-model-invocation: true
 
 # deck-kit 업데이트
 
-0. 자동 업데이트가 꺼져 있으면 켠다. 사용자 설정 `~/.claude/settings.json`(Windows `%USERPROFILE%\.claude\settings.json`)의 `extraKnownMarketplaces.gg-ax`에 `"autoUpdate": true`가 없으면 그 한 키만 더한다(다른 내용은 건드리지 않고, 고친 뒤 JSON으로 읽히는지 확인). 더했으면 "자동 업데이트를 켰다"고 알린다. `gg-ax` 항목이 없으면 건드리지 않는다.
+0. 마켓플레이스 주소를 옮긴다(1.5.2부터 목록은 `GG-AX/plugins`). 사용자 설정 `~/.claude/settings.json`(Windows `%USERPROFILE%\.claude\settings.json`)의 `extraKnownMarketplaces.gg-ax.source.repo`가 `GG-AX/deck-kit`이면: 그 값만 `GG-AX/plugins`로 바꾸고(고친 뒤 JSON으로 읽히는지 확인) → `claude plugin marketplace add GG-AX/plugins`. 설치된 deck-kit은 그대로 남는다. 옮겼으면 "플러그인 목록 주소를 GG-AX/plugins로 옮겼다"고 알린다. `claude` 명령이 없으면 Manage plugins → Marketplaces에서 `gg-ax`를 지우고 `GG-AX/plugins`를 추가하라고 안내한다(deck-kit은 Plugins 탭에서 다시 설치).
+   그다음 자동 업데이트가 꺼져 있으면 켠다. 사용자 설정 `~/.claude/settings.json`(Windows `%USERPROFILE%\.claude\settings.json`)의 `extraKnownMarketplaces.gg-ax`에 `"autoUpdate": true`가 없으면 그 한 키만 더한다(다른 내용은 건드리지 않고, 고친 뒤 JSON으로 읽히는지 확인). 더했으면 "자동 업데이트를 켰다"고 알린다. `gg-ax` 항목이 없으면 건드리지 않는다.
 1. 지금 버전을 확인한다: `claude plugin list` 출력에서 `deck-kit@gg-ax`의 버전.
 2. 순서대로 실행한다(PowerShell이나 Bash 어느 쪽이든).
    - `claude plugin marketplace update gg-ax`
@@ -21,4 +22,4 @@ disable-model-invocation: true
 
 `claude` 명령을 찾을 수 없으면(VS Code 확장만 깔린 PC) 2단계 대신 "Manage plugins → Plugins 탭 → `deck-kit`의 🔄 버튼"을 누르라고 안내한다. 0·5단계는 그대로 한다.
 
-실패하면 메시지를 그대로 보여 준다. 저장소는 공개라 GitHub 로그인이 필요 없다. 접근 오류(`not found`, `403`, 시간 초과)는 보통 네트워크·프록시 문제이니 마켓플레이스 주소가 `GG-AX/deck-kit`인지와 인터넷 연결을 본다.
+실패하면 메시지를 그대로 보여 준다. 저장소는 공개라 GitHub 로그인이 필요 없다. 접근 오류(`not found`, `403`, 시간 초과)는 보통 네트워크·프록시 문제이니 마켓플레이스 주소가 `GG-AX/plugins`인지와 인터넷 연결을 본다.
