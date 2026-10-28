@@ -6,8 +6,9 @@ usage: python motion_lib.py find --key STYLE [--image card.webp] [--deck DIR --c
   find     prints the library folder and exits 0, or exits 1 when there is none.
            With --deck and --case it copies the clip to <deck>/ai/motion/out/<case>.mp4 - then motion_post.py as usual.
   add      copies the start image and the raw clip (before motion_post) into <library>/<key>/ with info.json.
-Library folder: the LIBRARY line below or the DECKKIT_MOTION_LIB environment variable. When neither is set or the
-folder cannot be reached (no access), the tool says so and exits 0 - make new clips or keep the stills.
+Library folder: the DECKKIT_MOTION_LIB environment variable, saved per user by /deck-kit:update ("-" = no library).
+The address is not written in the kit (the kit is public). When it is not set or the folder cannot be reached
+(no access), the tool says so and exits 0 - keep the stills (do not make new clips without the library).
 """
 import argparse
 import hashlib
@@ -21,9 +22,6 @@ from pathlib import Path
 
 import deckutil  # noqa: F401  (utf-8 console output)
 
-LIBRARY = ""   # the shared folder, e.g. a synced team folder - set it once the team picks one
-
-
 def sha1(path):
     return hashlib.sha1(Path(path).read_bytes()).hexdigest()
 
@@ -33,11 +31,11 @@ def folder(key):
 
 
 def library():
-    p = os.environ.get("DECKKIT_MOTION_LIB") or LIBRARY
-    if not p:
-        print("motion library not set - skipped (set LIBRARY in motion_lib.py or DECKKIT_MOTION_LIB)")
+    p = os.environ.get("DECKKIT_MOTION_LIB", "").strip()
+    if p in ("", "-"):
+        print("motion library not set - skipped, keep the stills (/deck-kit:update saves the address)")
     elif not Path(p).is_dir():
-        print("motion library not reachable: %s - skipped (no access: keep the stills or make new clips)" % p)
+        print("motion library not reachable: %s - skipped (no access: keep the stills)" % p)
     else:
         return Path(p)
     return None

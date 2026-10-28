@@ -71,6 +71,7 @@
 | v1.5.0 | 2026-10-26 | 사원용 시험판 — Windows·Edge·개발자 설치에 기대지 않게. 저장소 공개(GitHub 로그인 없이 설치), `/deck-kit:update`가 Python·도구 패키지·캡처용 브라우저까지 설치. 캡처 브라우저를 Playwright Chromium으로(`DECKKIT_BROWSER`로 바꿀 수 있음, 없으면 Chrome·Edge). 스크립트 저장 도우미(`Start Presentation.bat`·`notes_server.ps1`) 제거 — 덱은 .html을 Edge·Chrome으로 열고, 처음 한 번 `assets/notes.js`를 고른다. `motion_run.ps1` → `motion_run.py`. lint가 덱에 남은 .bat·.ps1을 WARN. SKILL·README 경로를 `/`로. 엔진 v1.5 견본 정리(17 → 16장): 겹치던 장 합침(`chart`+`chart-3`, `photo-steps`+`big-image`), `chart-3` = 조각 많은 구성, 거점 지도를 HTML 핀으로, 빈 칸 메움(DESIGN 여백). 견본 장마다 위쪽에 부품 설명(`data-guide`, H로 숨김) |
 | v1.5.1 | 2026-10-26 | 공개 저장소라 문서·주석에서 바이어 이름을 뺌(DESIGN "나온 곳" = "실전 덱", README 기록, engine.css 주석 한 줄). 동작은 그대로 |
 | v1.5.2 | 2026-10-28 | 플러그인 목록(마켓플레이스 `gg-ax`)을 `GG-AX/plugins`로 옮김 — `/deck-kit:update`가 옛 주소(`GG-AX/deck-kit`)를 자동으로 바꿈. 카드 영상: 기본 모델 Kling 4.0(`kling4_0`, Seedance 2.0은 plan에서), 고정 프롬프트(`motion_prompts.json` full·upper·lower), 공용 영상 라이브러리(`motion_lib.py`, 위치 설정 전에는 건너뜀), SKILL "카드 영상 만들기"(사진 준비·결과 확인 기준). 엔진은 그대로 |
+| v1.5.3 | 2026-10-28 | 공용 영상 라이브러리 주소를 사람마다 저장 — `/deck-kit:update`가 처음 한 번 묻고(주소는 AX 팀·노션 허브, 없으면 '없음') 사용자 설정 `DECKKIT_MOTION_LIB`에 저장. 키트에는 주소를 적지 않음. 라이브러리가 없거나 접근 못 하면 카드는 사진(새 영상도 만들지 않음) |
 
 ## 엔진 버전 기록
 

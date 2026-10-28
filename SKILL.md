@@ -151,9 +151,17 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 
 ## 카드 영상 만들기 — 상품 카드(`product`)
 
-베스트셀러 카드는 되도록 짧은 영상(소리 없이 반복)으로 낸다. 영상이 없는 카드는 사진 그대로 보인다(영상을 못 만들거나 실패해도 그대로 둔다). 카드 하나의 순서:
+베스트셀러 카드는 되도록 짧은 영상(소리 없이 반복)으로 낸다. 영상이 없는 카드는 사진 그대로 보인다(영상을 못 만들거나 실패해도 그대로 둔다).
 
-1. **라이브러리 확인** — `motion_lib.py find --key <스타일 번호> --image <카드 사진> --deck <덱> --case <카드>`. 있으면 `ai/motion/out/<카드>.mp4`로 복사되니 6번으로. 라이브러리가 설정되지 않았거나 접근할 수 없으면 건너뛴다
+| 공용 라이브러리 | 카드 |
+| --- | --- |
+| 접근됨 + 그 스타일 영상 있음 | 영상(가져다 씀, 크레딧 없음) |
+| 접근됨 + 없음 | 새로 만들기(크레딧 확인 후) → 라이브러리에 넣기. 안 만들면 사진 |
+| 주소 없음·접근 못 함 | 사진. 새 영상도 만들지 않는다(라이브러리 밖에 영상이 따로 생기지 않게) |
+
+라이브러리 주소는 사람마다 `/deck-kit:update`가 한 번 물어 저장한다(키트에는 적지 않음). 카드 하나의 순서:
+
+1. **라이브러리 확인** — `motion_lib.py find --key <스타일 번호> --image <카드 사진> --deck <덱> --case <카드>`. 있으면 `ai/motion/out/<카드>.mp4`로 복사되니 6번으로. "not set"·"not reachable"이면 여기서 멈추고 사진으로 둔다
 2. **사진 준비** — 시작 이미지 = 카드에 보일 사진 그대로
    - 사진 종류를 정한다: 전신(머리~발) `full` · 상반신(머리~허벅지, 상의·코트) `upper` · 하반신(허리~발, 스커트·바지) `lower`. 여러 명 한 장·옷만 찍은 사진은 영상으로 만들지 않는다(움직임이 약하거나 맞는 프롬프트가 없음)
    - 같은 장의 카드는 인물 크기를 맞춘다: `images.py cut` → `images.py fit --size 900x1200 --bg #RRGGBB`(배경 제거가 이상하면 원본을 카드 비율로 잘라 쓴다)
@@ -187,7 +195,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `notes_probe.py [덱]` | 발표자 창·스크립트 저장 시험 |
 | `motion_run.py --plan plan.json [--dry-run]` | Higgsfield로 카드 영상 생성(기본 Kling 4.0 `kling4_0`, 5초 720p) — **크레딧. 먼저 `--dry-run`, 사용자 확인 후** |
 | `motion_post.py <clip.mp4> --image … [--box 280:450] [--link]` | 영상을 끊김 없는 반복 영상으로 만들고 motion.js에 연결 |
-| `motion_lib.py find｜add --key <스타일 번호> …` | 공용 영상 라이브러리에서 찾아 쓰기 · 새 영상 넣기. 라이브러리 위치는 `LIBRARY` 줄(또는 `DECKKIT_MOTION_LIB`), 없거나 접근 못 하면 건너뜀 |
+| `motion_lib.py find｜add --key <스타일 번호> …` | 공용 영상 라이브러리에서 찾아 쓰기 · 새 영상 넣기. 위치는 사용자 설정 `DECKKIT_MOTION_LIB`(`/deck-kit:update`가 물어 저장), 없거나 접근 못 하면 건너뜀 |
 | `anim_probe.py` · `perf_probe.py` | 애니메이션 흔들림 · 재생 성능 측정 |
 
 필요한 것: Python 3 + `pip install pillow websocket-client playwright`(배경 제거는 numpy·scipy·rembg, PPT 추출은 olefile) + `python -m playwright install chromium`(캡처용 브라우저, 약 150MB, 한 번), 영상 작업은 ffmpeg.

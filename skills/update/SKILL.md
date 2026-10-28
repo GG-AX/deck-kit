@@ -8,6 +8,7 @@ disable-model-invocation: true
 
 0. 마켓플레이스 주소를 옮긴다(1.5.2부터 목록은 `GG-AX/plugins`). 사용자 설정 `~/.claude/settings.json`(Windows `%USERPROFILE%\.claude\settings.json`)의 `extraKnownMarketplaces.gg-ax.source.repo`가 `GG-AX/deck-kit`이면: 그 값만 `GG-AX/plugins`로 바꾸고(고친 뒤 JSON으로 읽히는지 확인) → `claude plugin marketplace add GG-AX/plugins`. 설치된 deck-kit은 그대로 남는다. 옮겼으면 "플러그인 목록 주소를 GG-AX/plugins로 옮겼다"고 알린다. `claude` 명령이 없으면 Manage plugins → Marketplaces에서 `gg-ax`를 지우고 `GG-AX/plugins`를 추가하라고 안내한다(deck-kit은 Plugins 탭에서 다시 설치).
    그다음 자동 업데이트가 꺼져 있으면 켠다. 사용자 설정 `~/.claude/settings.json`(Windows `%USERPROFILE%\.claude\settings.json`)의 `extraKnownMarketplaces.gg-ax`에 `"autoUpdate": true`가 없으면 그 한 키만 더한다(다른 내용은 건드리지 않고, 고친 뒤 JSON으로 읽히는지 확인). 더했으면 "자동 업데이트를 켰다"고 알린다. `gg-ax` 항목이 없으면 건드리지 않는다.
+   그다음 공용 영상 라이브러리 주소(상품 카드 영상을 다시 쓰는 공유 폴더). 사용자 설정의 `env.DECKKIT_MOTION_LIB`가 없을 때만 한 번 묻는다: "공용 영상 라이브러리 주소가 있나요? 주소는 AX 팀이나 노션 deck-kit 허브에 있습니다. 없으면 '없음'". 답한 주소(없음이면 `-`)를 `env.DECKKIT_MOTION_LIB` 한 키로 더한다(다른 내용은 건드리지 않고, JSON으로 읽히는지 확인). 주소를 받았으면 그 폴더가 열리는지 보고, 안 열리면 "이 PC에서는 지금 접근할 수 없다 — 카드는 사진으로 나간다"고 알린다. 값이 이미 있으면(`-` 포함) 묻지 않는다. 사용자가 바꾸자고 할 때만 다시 묻는다.
 1. 지금 버전을 확인한다: `claude plugin list` 출력에서 `deck-kit@gg-ax`의 버전.
 2. 순서대로 실행한다(PowerShell이나 Bash 어느 쪽이든).
    - `claude plugin marketplace update gg-ax`
