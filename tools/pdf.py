@@ -1,8 +1,9 @@
 """Print the deck to a PDF with headless Chromium — text stays text (sharp, searchable), not screenshots.
 
-usage: python pdf.py [deck] [--out FILE]
-  deck   deck workspace, its presentation folder or the .html (default: current folder)
-  --out  default <deck workspace>\\<workspace folder name>.pdf
+usage: python pdf.py [deck] [--out FILE] [--skip 2,7,closing]
+  deck    deck workspace, its presentation folder or the .html (default: current folder)
+  --out   default <deck workspace>\\<workspace folder name>.pdf
+  --skip  more slides to leave out: numbers as in the deck (1 = first) or slide ids (data-src)
 One page per slide (1280×720), animations at their end state (?static).
 Full-screen video slides (.video-full) are left out; product-card clips show their photo.
 """
@@ -27,9 +28,11 @@ body>*:not(.stage){display:none!important}
 .slide:not(.dark)::before{border-radius:0;box-shadow:none}
 """
 PREPARE = """(async () => {
+  const skip = %s;
   let cut = 0;
-  document.querySelectorAll('.slide').forEach(s => {
-    if (s.querySelector('.video-full')) { s.remove(); cut++; } else s.classList.add('active');
+  document.querySelectorAll('.slide').forEach((s, k) => {
+    if (s.querySelector('.video-full') || skip.includes(String(k + 1)) || skip.includes(s.dataset.src)) { s.remove(); cut++; }
+    else s.classList.add('active');
   });
   document.querySelectorAll('img[loading]').forEach(i => i.loading = 'eager');
   const st = document.createElement('style'); st.textContent = %s; document.head.appendChild(st);
@@ -59,7 +62,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("deck", nargs="?")
     ap.add_argument("--out")
+    ap.add_argument("--skip", default="")
     a = ap.parse_args()
+    skip = [s.strip() for s in a.skip.split(",") if s.strip()]
 
     html = find_html(a.deck)
     root = deck_root(html)
@@ -69,11 +74,11 @@ def main():
         c.send("Page.enable")
         c.send("Page.addScriptToEvaluateOnNewDocument", source=NO_MOTION)
         c.open(html.as_uri() + "?static#1")
-        pages, cut = c.ev(PREPARE % json.dumps(PRINT_CSS), wait=True)
+        pages, cut = c.ev(PREPARE % (json.dumps(skip), json.dumps(PRINT_CSS)), wait=True)
         r = c.send("Page.printToPDF", printBackground=True, preferCSSPageSize=True)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(base64.b64decode(r["data"]))
-    print("%s — %d pages%s (%.1f MB)" % (out, pages, ", %d video slides left out" % cut if cut else "",
+    print("%s — %d pages%s (%.1f MB)" % (out, pages, ", %d slides left out" % cut if cut else "",
                                          out.stat().st_size / 1e6))
 
 
