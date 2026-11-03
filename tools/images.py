@@ -2,12 +2,13 @@
 
 usage: python images.py web  <images or folders…> --out DIR [--max 1600] [--quality 86]
        python images.py cut  <images…> --out DIR [--model birefnet-portrait]
-       python images.py trim <images…> --out DIR [--pad 6]
+       python images.py trim <images…> --out DIR [--pad 6] [--clear]
        python images.py fit  <cut-outs…> --out DIR [--size 900x1200] [--fill 0.88] [--bg transparent|#RRGGBB]
   web   longest side ≤ --max px (web size), alpha dropped when it hides nothing
   cut   remove the background (rembg; the model downloads once, ~1 GB for birefnet-portrait) and trim to the
         person/object; prints the {"img", "w", "h"} lines a collage needs in data.js
-  trim  cut the empty margin around a logo (transparent or plain background)
+  trim  cut the empty margin around a logo (transparent or plain background); --clear also turns a plain
+        (e.g. white) background transparent — needed when the deck recolours the logo (treemap)
   fit   cut-outs on one canvas size: everyone the same height (--fill of the canvas), feet on one line,
         centred — for product cards. The background stays transparent unless --bg is given.
 """
@@ -94,6 +95,13 @@ def trim(src, out, a):
         diff = ImageChops.difference(im.convert("RGB"), Image.new("RGB", im.size, corner[:3])).convert("L")
         box = diff.point(lambda v: 255 if v > 24 else 0).getbbox()
         bg = corner
+        if a.clear:   # background → transparent, soft over a small colour distance so letter edges stay smooth
+            # shortcut: edge pixels keep a trace of the old background colour, fine for recoloured/light uses;
+            # un-mix them (alpha matting) if a logo on a dark slide shows a halo
+            r, g, b = ImageChops.difference(im.convert("RGB"), Image.new("RGB", im.size, corner[:3])).split()
+            far = ImageChops.lighter(ImageChops.lighter(r, g), b)        # biggest channel difference
+            im.putalpha(far.point(lambda v: 0 if v <= 8 else 255 if v >= 48 else (v - 8) * 255 // 40))
+            bg = (0, 0, 0, 0)
     if not box:
         raise ValueError("the image is empty")
     im = im.crop(box)
@@ -133,6 +141,7 @@ def main():
     ap.add_argument("--quality", type=int, default=86)
     ap.add_argument("--model", default="birefnet-portrait")
     ap.add_argument("--pad", type=int, default=6)
+    ap.add_argument("--clear", action="store_true")
     ap.add_argument("--size", default="900x1200")
     ap.add_argument("--fill", type=float, default=0.88)
     ap.add_argument("--bg", default="transparent")

@@ -191,7 +191,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `lint.py [덱]` | 작업 폴더 점검(읽기만 함): 태그 짝, 슬라이드 id, 남은 견본, 빠진 파일, 노트 키, 덱 스크립트, deck.css 중복·안 쓰는 클래스, 엔진이 키트와 같은지, 백업이 쓰는 파일, 양식 칸 남김 |
 | `snapshot.py vN_<이름> "설명" [덱]` | 피드백 반영 **전** 지금 덱 코드를 `versions/vN_<이름>/`에 백업하고 `versions/README.md` 표에 줄을 더한다 |
 | `extract.py <파일.pptx> [--deck 덱]` | PPT → 슬라이드별 글·노트·그림(`work/manifest.json`), 그림·내장 보고서는 `presentation/`에. 그림은 PPT에서 잘린 대로, SVG 그림은 .svg로. 읽지 못한 그림은 건너뛰고 끝에 목록 |
-| `images.py web｜cut｜trim｜fit <이미지…> --out 폴더` | 웹용 크기 · 배경 제거(투명) · 로고 여백 자르기 · 인물을 같은 크기 캔버스에 |
+| `images.py web｜cut｜trim｜fit <이미지…> --out 폴더` | 웹용 크기 · 배경 제거(투명) · 로고 여백 자르기(`--clear`: 흰 배경도 투명 — 트리맵처럼 로고를 칠하는 곳에 필요) · 인물을 같은 크기 캔버스에 |
 | `used_assets.py [덱] [--move]` | 안 쓰는 파일·빠진 파일 찾기(`--move`: `work/unused_assets/`로 옮김). `versions/` 백업이 쓰는 파일은 사용 중으로 친다 |
 | `dedupe_presentation.py [덱] [--dry]` | 똑같은 파일 정리 |
 | `notes_probe.py [덱]` | 발표자 창·스크립트 저장 시험 |
