@@ -1,4 +1,4 @@
-/* deck-kit engine v1.5 (2026-10-26) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
+/* deck-kit engine v1.6 (2026-11-03) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
 (function () {
   "use strict";
   var VERSION = "1.0";
@@ -84,8 +84,10 @@
   }
 
   /* ---------- product cards: <div class="bs-grid" data-bs="NAME"></div> + data.js
-     DECK_DATA.bestsellers.NAME = {cards:[{img, logo, retailer, season, spec:["FIRST LINE","more"], qty:["38,000 PCS"], alts:[img…]}]}
-     (only img is required; norm.js may swap the image, motion.js turns it into a looping clip) ---------- */
+     DECK_DATA.bestsellers.NAME = {lines:4, cards:[{img, logo, retailer, season, style, spec:["FIRST LINE","more"], qty:["38,000 PCS"], alts:[img…]}]}
+     (only img is required; norm.js may swap the image, motion.js turns it into a looping clip).
+     No logo → the retailer name as text. style = style number line. lines = spec lines shown (default 4; the
+     info box grows with it, the same for every card of the grid) ---------- */
   function specHtml(spec) { return spec.length ? "<b>" + esc(spec[0]) + "</b>" + esc(spec.slice(1).join(" ")) : ""; }
   function qtyHtml(q) {   // "38,000 PCS" → number + small unit; "TOP: 12,000 PCS" → small label in front
     return q.map(function (t) {
@@ -98,6 +100,9 @@
     each("[data-bs]", function (host) {
       var d = D.bestsellers[host.getAttribute("data-bs")]; if (!d) return;
       var anyAlts = d.cards.some(function (c) { return c.alts && c.alts.length; });
+      var anyStyle = d.cards.some(function (c) { return c.style; }), lines = d.lines || 4;
+      host.style.setProperty("--lines", lines);
+      host.style.setProperty("--meta", 130 + (lines - 4) * 16 + (anyStyle ? 18 : 0) + (anyAlts ? 72 : 0) + "px");
       host.innerHTML = "";
       d.cards.forEach(function (c, k) {
         var card = el("div", "bs-card reveal" + (anyAlts ? " has-alts" : "")), qty = c.qty || [];
@@ -105,8 +110,9 @@
         var alts = anyAlts ? '<div class="alts">' + (c.alts || []).map(function (a) { return '<img src="' + (NORM[a] || a) + '" alt="">'; }).join("") + "</div>" : "";
         card.innerHTML = '<div class="media">' + media(c.img) + "</div>" +
           '<div class="meta">' + alts.replace('class="alts"', 'class="alts" style="padding:0 0 8px;height:' + (anyAlts ? 72 : 0) + 'px"') +
-          '<div class="row1">' + (c.logo ? '<img src="' + c.logo + '" alt="' + esc(c.retailer || "") + '">' : "<span></span>") +
+          '<div class="row1">' + (c.logo ? '<img src="' + c.logo + '" alt="' + esc(c.retailer || "") + '">' : '<span class="brand">' + esc(c.retailer || "") + "</span>") +
           '<span class="season">' + esc(c.season || "") + "</span></div>" +
+          (anyStyle ? '<div class="style">' + esc(c.style || "") + "</div>" : "") +
           '<div class="spec">' + specHtml(c.spec || []) + "</div>" +
           '<div class="qty' + (qty.length > 1 ? " two" : "") + '">' + qtyHtml(qty) + "</div></div>";
         host.appendChild(card);

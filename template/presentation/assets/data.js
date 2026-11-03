@@ -1,6 +1,8 @@
 /* Example content for the parts that read data — product cards (data-bs) and the collage (data-pf).
    Replace it with this deck's own and delete what the deck does not use. Paths are relative to the deck .html.
    Product card: only img is required. qty "TOP: 12,000 PCS" = small label + number + small unit.
+   No logo → retailer shown as text. "style": "STYLE #…" adds a style number line. Long spec: "lines": 6 next to
+   "cards" (default 4 lines shown; the info box of every card grows with it).
    Collage item: a cut-out (transparent background) with its pixel size w × h; "back": true = stands behind. */
 window.DECK_DATA = {
  "bestsellers": {

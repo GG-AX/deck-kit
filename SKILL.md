@@ -110,7 +110,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `columns` | 3단 카드 + 결론 | `.rule` 칼럼(제목·숫자 `.stat`·`ul.list`·`.hl`) + `.concl` + 출처 `.foot` |
 | `photo-steps` | 사진 + 글 + 단계 | `.figure`(+ 출처 `.src`), `.chip`, 01→05 `.flow`. 스크린샷 한 장을 크게 보일 때는 글 칸을 빼고 `.figure`만 키운다 |
 | `collage` | 콜라주 | `data-collage`(칸 좌표, 1192×578 기준) + `data.js`의 portfolio(배경 지운 인물 사진) |
-| `product` | 상품 카드 | `.bs-grid data-bs` + `data.js`의 bestsellers(+ `motion.js` 카드 영상) |
+| `product` | 상품 카드 | `.bs-grid data-bs` + `data.js`의 bestsellers(+ `motion.js` 카드 영상). 로고 없으면 `retailer`가 글자로, `style` = 스타일 번호 줄, 원단·스펙이 길면 묶음에 `lines`(기본 4) — 카드를 덱에서 새로 만들지 않는다 |
 | `report` | 보고서 카드 | `.stepline`(단계 표시) + `.report`: 미리보기 + `button data-report="reports/…html"` → 같은 화면 위 보고서 창 |
 | `closing` | 마무리 | `.closing`: 로고 + 큰 문장 하나 |
 
