@@ -113,7 +113,14 @@ def main():
                 if data:
                     replace(f, data, "longest side %d px" % MAX_PX)
             elif ext == ".mp4":
-                ff = ff or find_ffmpeg()
+                if ff is None:
+                    try:
+                        ff = find_ffmpeg()
+                    except SystemExit as e:   # no ffmpeg: pictures and reports still get done
+                        print("videos skipped —", e)
+                        ff = False
+                if not ff:
+                    continue
                 c = video_check(ff, f)
                 if not c:
                     continue
