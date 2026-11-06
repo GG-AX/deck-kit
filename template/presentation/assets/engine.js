@@ -516,10 +516,15 @@
   } catch (e) {}
   function setNotes(src, text) {
     NOTES[src] = EDITED[src] = text.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
-    dirty = true;
-    try { localStorage.setItem(DRAFT, JSON.stringify({ base: NB.saved, edited: EDITED })); } catch (e) {}
+    keepNotes();
+    autoSave(NOTESTORE, 2000);
+  }
+  function keepNotes() {
+    dirty = Object.keys(EDITED).length > 0;
+    try { if (dirty) localStorage.setItem(DRAFT, JSON.stringify({ base: NB.saved, edited: EDITED })); else localStorage.removeItem(DRAFT); } catch (e) {}
     presStatus();
   }
+  function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
   function bySlide(o) {   // slide order; entries of slides taken out of the deck are kept at the end
     var r = {};
     slides.forEach(function (s) { var k = s.getAttribute("data-src"); if (o[k]) r[k] = o[k]; });
@@ -527,33 +532,46 @@
     return r;
   }
   function isSlide(k) { return slides.some(function (s) { return s.getAttribute("data-src") === k; }); }
-  function saveNotes(win) {
-    saveStore(win, {
-      file: "notes.js", global: "DECK_NOTES", what: "스크립트",
-      merge: function (disk) {   // the file as it is now + only the slides edited here
-        var n = {}, k;
-        for (k in (disk && disk.notes) || {}) n[k] = disk.notes[k];
-        for (k in EDITED) { if (EDITED[k].length) n[k] = EDITED[k]; else delete n[k]; }
-        return { notes: bySlide(n) };
-      },
-      all: function () { return { notes: bySlide(NOTES) }; },
-      foreign: function (disk) { var ks = Object.keys(disk.notes || {}); return ks.length && !ks.some(isSlide); },
-      saved: function (data) {
-        NB = data; NOTES = {}; EDITED = {}; dirty = false; draftStale = false;
-        for (var k in data.notes) NOTES[k] = data.notes[k];
-        try { localStorage.removeItem(DRAFT); } catch (e) {}
-        presSrc = null; updatePresenter();   // shows what other edits brought in
-      },
-      status: presStatus
-    });
-  }
+  var NOTESTORE = {
+    file: "notes.js", global: "DECK_NOTES", what: "스크립트",
+    win: function () { return presenter && !presenter.closed ? presenter : window; },
+    snap: function () { return JSON.parse(JSON.stringify(EDITED)); },
+    merge: function (disk, snap) {   // the file as it is now + only the slides edited here
+      var n = {}, k;
+      for (k in (disk && disk.notes) || {}) n[k] = disk.notes[k];
+      for (k in snap) { if (snap[k].length) n[k] = snap[k]; else delete n[k]; }
+      return { notes: bySlide(n) };
+    },
+    all: function () { return { notes: bySlide(NOTES) }; },
+    foreign: function (disk) { var ks = Object.keys(disk.notes || {}); return ks.length && !ks.some(isSlide); },
+    saved: function (data, snap) {   // edits typed while saving stay unsaved (they were not in this save)
+      var k;
+      NB = data; NOTES = {}; draftStale = false;
+      for (k in EDITED) if (same(EDITED[k], snap[k])) delete EDITED[k];
+      for (k in data.notes) NOTES[k] = data.notes[k];
+      for (k in EDITED) NOTES[k] = EDITED[k];
+      keepNotes();
+      // show what other edits brought in — never while the presenter is typing (that would move the caret)
+      if (!presenter || presenter.closed || presenter.document.activeElement.id !== "no") { presSrc = null; updatePresenter(); }
+    },
+    status: function (msg, ok) { presStatus(msg, ok); }
+  };
+  function saveNotes(win) { saveStore(win, NOTESTORE); }
 
-  /* Saving (notes.js now, review.js too), in order of preference:
+  /* Saving (notes.js and review.js), in order of preference:
      1) Edge/Chrome file access: the presentation's assets folder is chosen once per copy and remembered (IndexedDB).
-        Before writing, the file is read again and only this window's edits are put in (st.merge), so edits made
-        elsewhere since the deck was opened (the agent, another window, OneDrive) are kept; the old file goes to
-        assets/<name>_backup/ (last 20).
+        After that every change saves by itself a moment later (autoSave). Before writing, the file is read again and
+        only this window's edits are put in (st.merge), so edits made elsewhere since the deck was opened (the agent,
+        another window, OneDrive) are kept; the old file goes to assets/<name>_backup/ (last 20 — while one person
+        keeps typing, at most one backup every 10 minutes, so the history is not filled with a minute of typing).
+        A click on the save button is needed only to choose the folder, or to allow writing again after the browser
+        restarted.
      2) other browsers: download the file to replace by hand */
+  var autoDir = false, BACKUP_GAP = 10 * 60 * 1000;   // autoDir: the remembered folder can be written without asking
+  function autoSave(st, ms) {
+    clearTimeout(st.timer);
+    if (autoDir) st.timer = setTimeout(function () { saveStore(st.win(), st, true); }, ms);
+  }
   function idb(mode, fn, win) {
     return new Promise(function (ok, no) {
       var q = (win || window).indexedDB.open(KEY, 1);
@@ -599,35 +617,49 @@
   }
   // the folder is asked for and remembered through the window holding the click: Chrome only grants write
   // permission (after a browser restart) to a handle that lives in the window holding that click
-  function assetsDir(win, st) {
-    return idb("readonly", function (s) { return s.get("assetsDir"); }, win).catch(function () { return null; }).then(function (h) {
-      return h ? h.requestPermission({ mode: "readwrite" }).then(function (p) { return p === "granted" ? h : null; }, function () { return null; }) : null;
+  var dirHandle = null;   // the remembered folder, once read or chosen in this page
+  function assetsDir(win, st, quiet) {   // quiet (automatic save): never asks — fails with "ask" instead
+    var known = dirHandle ? Promise.resolve(dirHandle) : idb("readonly", function (s) { return s.get("assetsDir"); }, win).catch(function () { return null; });
+    return known.then(function (h) {
+      if (!h) return null;
+      dirHandle = h;
+      return h[quiet ? "queryPermission" : "requestPermission"]({ mode: "readwrite" }).then(function (p) { return p === "granted" ? h : null; }, function () { return null; });
     }).then(function (h) {
-      if (h) return h;
+      if (h) { autoDir = true; return h; }
+      autoDir = false;
+      if (quiet) throw new Error("ask");
       st.status("이 덱의 assets 폴더를 골라 주세요: " + showDir() + " (복사본마다 처음 한 번)");
       return win.showDirectoryPicker({ id: "deckkit-assets", mode: "readwrite" }).then(function (d) {
         return d.getFileHandle("engine.js").then(function () {
           idb("readwrite", function (s) { return s.put(d, "assetsDir"); }, win).catch(function () {});
+          autoDir = true; dirHandle = d;
           return d;
         }, function () { throw new Error("고른 폴더에 engine.js가 없습니다 — 덱 폴더 안의 assets 폴더를 골라 주세요"); });
       });
     });
   }
-  function saveStore(win, st) {
+  function saveStore(win, st, quiet) {
+    if (st.busy) { st.again = true; return; }   // one save at a time; the changes made meanwhile follow right after
     var stamp = new Date().toISOString();
-    function fail(e) { if (e && e.name !== "AbortError" && e.message !== "cancel") st.status("저장하지 못했습니다 — " + e.message); }
-    st.status("저장 중…");
+    function fail(e) {
+      if (e && e.message === "ask") st.status("");   // the status line asks for one click on the save button
+      else if (e && e.name !== "AbortError" && e.message !== "cancel") st.status("저장하지 못했습니다 — " + e.message);
+    }
+    if (!quiet) st.status("저장 중…");
     if (!win.showDirectoryPicker) {
+      if (quiet) return;
       var data = st.all(); data.saved = stamp; data.deck = DECK_DIR;
       var a = win.document.createElement("a");
       a.href = URL.createObjectURL(new Blob([jsText(st.global, data)], { type: "text/javascript" }));
       a.download = st.file;
       win.document.body.appendChild(a); a.click(); a.remove();
-      st.saved(data);
+      st.saved(data, st.snap());
       st.status(st.file + "를 내려받았습니다 → 덱 폴더의 assets/" + st.file + "를 이 파일로 바꿔 넣어야 반영됩니다", true);
       return;
     }
-    assetsDir(win, st).then(function (dir) {
+    var snap = st.snap();
+    st.busy = true;
+    assetsDir(win, st, quiet).then(function (dir) {
       return readJs(dir, st.file).then(function (cur) {
         var disk = cur[1];
         // a file saved by another deck: its folder is written in it (older files: none of its slides is in this deck)
@@ -635,25 +667,36 @@
             !win.confirm("이 assets 폴더의 " + st.what + "는 다른 위치의 덱에서 저장한 것입니다:\n" + (disk.deck || "(위치 기록 없음)") +
               "\n\n이 덱을 옮기거나 복사했다면 '확인', 다른 덱의 폴더를 잘못 골랐다면 '취소'를 누르세요.")) {
           idb("readwrite", function (s) { return s.delete("assetsDir"); }, win).catch(function () {});
+          dirHandle = null; autoDir = false;
           throw new Error("cancel");
         }
-        var data = st.merge(disk); data.saved = stamp; data.deck = DECK_DIR;
+        var data = st.merge(disk, snap); data.saved = stamp; data.deck = DECK_DIR;
         var text = jsText(st.global, data);
-        return (cur[0] ? backup(dir, st.file, cur[0]) : Promise.resolve()).then(function () { return writeFile(dir, st.file, text); }).then(function () {
-          st.saved(data);
-          st.status("✓ 저장했습니다", true);
+        // no new backup when the file is still this window's last save and its backup is recent
+        var keep = cur[0] && !(disk && disk.saved === st.lastStamp && Date.now() - (st.lastBackup || 0) < BACKUP_GAP);
+        return (keep ? backup(dir, st.file, cur[0]).then(function () { st.lastBackup = Date.now(); }) : Promise.resolve()).then(function () {
+          return writeFile(dir, st.file, text);
+        }).then(function () {
+          st.lastStamp = stamp;
+          st.saved(data, snap);
+          st.status((quiet ? "✓ 자동 저장 " : "✓ 저장했습니다 ") + new Date().toLocaleTimeString(), true);
         });
       });
-    }).catch(function (e) { st.status(""); fail(e); });
+    }).catch(function (e) { st.status(""); fail(e); }).then(function () {
+      st.busy = false;
+      if (st.again) { st.again = false; autoSave(st, 300); }
+    });
   }
   function presStatus(msg, ok) {
     if (!presenter || presenter.closed) return;
     var st = presenter.document.getElementById("st");
     if (msg) { st.textContent = msg; st.className = ok ? "ok" : ""; return; }
     var n = Object.keys(EDITED).length;
+    presenter.document.getElementById("sv").style.display = autoDir ? "none" : "";   // only needed for the first save
     st.className = dirty ? "dirty" : "";
-    st.textContent = dirty ? "저장 안 한 수정 " + n + "장" + (draftStale ? " — notes.js가 그 뒤 바뀌었습니다. 저장하면 최신 파일에 합쳐집니다" : " — 스크립트 저장을 누르세요") :
-      NB.saved ? "저장됨 " + new Date(NB.saved).toLocaleString() : "아직 저장 안 함";
+    st.textContent = dirty ? "저장 안 한 수정 " + n + "장" + (draftStale ? " — notes.js가 그 뒤 바뀌었습니다. 저장하면 최신 파일에 합쳐집니다" : "") +
+        (autoDir ? " — 곧 자동 저장" : " — [스크립트 저장]을 한 번 누르면 그다음부터 자동으로 저장됩니다") :
+      NB.saved ? "저장됨 " + new Date(NB.saved).toLocaleString() : autoDir ? "고치면 자동으로 저장됩니다" : "아직 저장 안 함";
   }
 
   /* ---------- presenter window (notes only on the presenter's screen) ---------- */
@@ -746,10 +789,11 @@
     for (var id in rvEdits.pins) { var e = rvEdits.pins[id]; if (e && e.fresh) out.push(e); }   // edits of a pin gone from the file are dropped
     return out;
   }
-  function rvNopdf(base) {   // slide ids, in slide order
+  function rvNopdf(base, edits) {   // slide ids, in slide order
     var s = {};
+    edits = edits || rvEdits.nopdf;
     (base || []).forEach(function (k) { s[k] = 1; });
-    for (var k in rvEdits.nopdf) { if (rvEdits.nopdf[k]) s[k] = 1; else delete s[k]; }
+    for (var k in edits) { if (edits[k]) s[k] = 1; else delete s[k]; }
     return Object.keys(bySlide(s));
   }
   function rvNextId() {
@@ -762,37 +806,60 @@
     if (fields === null) { if (cur && cur.fresh) delete rvEdits.pins[id]; else rvEdits.pins[id] = null; }
     else rvEdits.pins[id] = Object.assign(cur || { id: id }, fields);
   }
-  function rvKeep(noDraw) {
+  function rvKeep(noDraw) {   // noDraw: typing a note (redrawing is not needed, and saving waits a little longer)
     rvDirty = Object.keys(rvEdits.pins).length + Object.keys(rvEdits.nopdf).length > 0;
     try { if (rvDirty) localStorage.setItem(RVDRAFT, JSON.stringify(rvEdits)); else localStorage.removeItem(RVDRAFT); } catch (e) {}
     if (!noDraw) rvDraw();
     rvSync();
+    if (rvDirty) autoSave(RVSTORE, noDraw ? 2000 : 600);
   }
   var RVSTORE = {
-    file: "review.js", global: "DECK_REVIEW", what: "검수 메모",
-    merge: function (disk) {   // the file as it is now (the agent may have marked pins done) + the pin edits made here
+    file: "review.js", global: "DECK_REVIEW", what: "검수 메모", renum: {},
+    win: function () { return window; },
+    snap: function () {   // a new pin is saved once it has a note (an empty one is dropped when its note closes)
+      var s = JSON.parse(JSON.stringify(rvEdits));
+      for (var id in s.pins) if (s.pins[id] && s.pins[id].fresh && !(s.pins[id].note || "").trim()) delete s.pins[id];
+      return s;
+    },
+    merge: function (disk, snap) {   // the file as it is now (the agent may have marked pins done) + the pin edits made here
       disk = disk || {};
       var byId = {}, max = (disk.next || 1) - 1, out = [], id, e;
+      RVSTORE.renum = {};
       (disk.pins || []).forEach(function (p) {
         byId[p.id] = 1; max = Math.max(max, p.id);
-        e = rvEdits.pins[p.id];
+        e = snap.pins[p.id];
         if (e === null) return;
         out.push(e && !e.fresh ? Object.assign({}, p, e) : p);   // done/reply from the file stay
       });
-      for (id in rvEdits.pins) {
-        e = rvEdits.pins[id];
+      for (id in snap.pins) {
+        e = snap.pins[id];
         if (!e || !e.fresh) continue;
         var n = Object.assign({}, e); delete n.fresh;
-        if (byId[n.id]) n.id = max + 1;   // that number was taken in the file meanwhile
+        if (byId[n.id]) n.id = RVSTORE.renum[id] = max + 1;   // that number was taken in the file meanwhile
         max = Math.max(max, n.id); byId[n.id] = 1; out.push(n);
       }
-      return { next: max + 1, pins: out.sort(function (a, b) { return a.id - b.id; }), nopdf: rvNopdf(disk.nopdf) };
+      return { next: max + 1, pins: out.sort(function (a, b) { return a.id - b.id; }), nopdf: rvNopdf(disk.nopdf, snap.nopdf) };
     },
     all: function () {
       return { next: rvNextId(), pins: rvPins().map(function (p) { var n = Object.assign({}, p); delete n.fresh; return n; }), nopdf: rvNopdf(RV.nopdf) };
     },
     foreign: function (disk) { var ps = disk.pins || []; return ps.length && !ps.some(function (p) { return isSlide(p.slide); }); },
-    saved: function (data) { RV = data; rvEdits = { pins: {}, nopdf: {} }; rvKeep(); },
+    saved: function (data, snap) {   // what changed while saving stays unsaved; a new pin that was saved is now a pin of the file
+      RV = data;
+      var id, cur, was, nid;
+      for (id in snap.pins) {
+        was = snap.pins[id]; cur = rvEdits.pins[id];
+        nid = RVSTORE.renum[id] || +id;
+        if (rvOpen === +id && was && was.fresh) { rvOpen = nid; document.querySelector("#rvpop b").textContent = "메모 " + nid; }   // the open note follows its pin
+        if (same(cur, was)) { delete rvEdits.pins[id]; continue; }
+        if (!(was && was.fresh)) continue;
+        delete rvEdits.pins[id];
+        if (cur === undefined) rvEdits.pins[nid] = null;   // deleted while saving
+        else if (cur) { cur = Object.assign({}, cur, { id: nid }); delete cur.fresh; rvEdits.pins[nid] = cur; }
+      }
+      for (id in snap.nopdf) if (rvEdits.nopdf[id] === snap.nopdf[id]) delete rvEdits.nopdf[id];
+      rvKeep();
+    },
     status: rvStatus
   };
   function pct(v, w) { return Math.round(Math.max(0, Math.min(100, v / w * 100)) * 10) / 10; }
@@ -853,7 +920,7 @@
     if (document.getElementById("rvbar")) return;
     var b = el("div", "rv-bar", '<b>검수 중</b><span id="rvn"></span><label><input type="checkbox" id="rvpdf"> 이 장 PDF에서 빼기</label>' +
       '<label><input type="checkbox" id="rvold"> 지난 의견 보기</label><button id="rvsv" title="Ctrl+S">저장</button><span id="rvst"></span>' +
-      '<button id="rvx">끝내기 (R)</button><small>고칠 곳을 클릭하면 메모가 붙습니다 · 핀은 끌어서 옮깁니다 · 저장한 뒤 에이전트에게 "검수 의견 반영해줘"</small>');
+      '<button id="rvx">끝내기 (R)</button><small>고칠 곳을 클릭하면 메모가 붙습니다 · 핀은 끌어서 옮깁니다 · 메모는 자동으로 저장됩니다 · 다 적었으면 에이전트에게 "검수 의견 반영해줘"</small>');
     b.id = "rvbar"; document.body.appendChild(b);
     var p = el("div", "rv-pop", '<b></b><div class="rv-done"></div><textarea placeholder="무엇을 어떻게 고칠지 적어 주세요"></textarea>' +
       '<div class="rv-at"></div><footer><button class="del">삭제</button><button class="ok">닫기</button></footer>');
@@ -902,12 +969,16 @@
     var st = document.getElementById("rvst");
     if (!st) return;
     if (msg) { st.textContent = msg; st.className = ok ? "ok" : ""; return; }
+    document.getElementById("rvsv").style.display = autoDir ? "none" : "";   // only needed for the first save
     st.className = rvDirty ? "dirty" : "";
-    st.textContent = rvDirty ? "저장 안 함" : RV.saved ? "저장됨 " + new Date(RV.saved).toLocaleString() : "";
+    st.textContent = rvDirty ? (autoDir ? "곧 자동 저장" : "[저장]을 한 번 누르면 그다음부터 자동으로 저장됩니다") :
+      RV.saved ? "저장됨 " + new Date(RV.saved).toLocaleTimeString() : autoDir ? "메모는 자동으로 저장됩니다" : "";
   }
   function toggleReview(on) {
     reviewing = on != null ? on : !reviewing;
+    // the first time, ask for the folder right away (pressing R is the click the browser needs), so notes save by themselves
     if (reviewing) { rvBuild(); rvDraw(); toggleOverview(false); }
+    if (reviewing && !autoDir && window.showDirectoryPicker) saveStore(window, RVSTORE);
     else rvClosePop();
     document.body.classList.toggle("reviewing", reviewing);
     rvSync();
@@ -998,6 +1069,12 @@
     idx = n ? Math.min(slides.length, n) - 1 : 0;
     fit(); render();
     if (RV_SHOT) { document.documentElement.classList.add("rv-shot"); rvDraw(); }
+    // folder chosen before and writing still allowed: save by itself from the start (and save what was left unsaved)
+    if (window.showDirectoryPicker && !STATIC) assetsDir(window, NOTESTORE, true).then(function () {
+      if (dirty) autoSave(NOTESTORE, 500);
+      if (rvDirty) autoSave(RVSTORE, 500);
+      presStatus(); rvStatus();
+    }, function () {});
   }
   document.addEventListener("DOMContentLoaded", init);
 })();

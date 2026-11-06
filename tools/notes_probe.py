@@ -68,7 +68,8 @@ class Deck:
 
     def fake_folder(self, notes_text):
         """An in-memory assets folder (engine.js + notes.js) answers the presenter's folder dialog."""
-        self.e.ev(FAKE_FS + "window.__dir=__mkdir();__dir.e['engine.js']={text:'x'};__dir.e['notes.js']={text:%s};" % json.dumps(notes_text))
+        # the same folder object is refilled: the engine keeps the folder it was given
+        self.e.ev(FAKE_FS + "window.__dir=window.__dir||__mkdir();__dir.e={'engine.js':{text:'x'},'notes.js':{text:%s}};" % json.dumps(notes_text))
         self.pwin(".showDirectoryPicker=function(){return Promise.resolve(window.__dir)}")   # made here: window = the deck
 
     def disk(self, path="notes.js"):
@@ -92,11 +93,12 @@ FAKE_FS = """window.__mkdir=function(){
  function Dir(){this.kind='directory';this.e={};this.f=nf}   // own function: cannot be stored in IndexedDB, so never remembered
  Dir.prototype.getFileHandle=function(n,o){var e=this.e;if(!(n in e)){if(!(o&&o.create))return nf();e[n]={text:''}}var f=e[n];
   return Promise.resolve({name:n,getFile:function(){return Promise.resolve({text:function(){return Promise.resolve(f.text)}})},
-   createWritable:function(){var b='';return Promise.resolve({write:function(t){b+=t;return Promise.resolve()},close:function(){f.text=b;return Promise.resolve()}})}})};
+   createWritable:function(){var b='';return Promise.resolve({write:function(t){b+=t;return Promise.resolve()},
+    close:function(){return new Promise(function(r){setTimeout(function(){f.text=b;r()},window.__slow||0)})}})}})};   // __slow: a save that takes time
  Dir.prototype.getDirectoryHandle=function(n,o){var e=this.e;if(!(n in e)){if(!(o&&o.create))return nf();e[n]=new Dir()}return Promise.resolve(e[n])};
  Dir.prototype.keys=function(){var k=Object.keys(this.e),i=0;return{next:function(){return Promise.resolve(i<k.length?{done:false,value:k[i++]}:{done:true})}}};
  Dir.prototype.removeEntry=function(n){delete this.e[n];return Promise.resolve()};
- Dir.prototype.requestPermission=function(){return Promise.resolve('granted')};
+ Dir.prototype.requestPermission=Dir.prototype.queryPermission=function(){return Promise.resolve('granted')};
  return new Dir()};"""
 
 
@@ -149,6 +151,28 @@ def main():
         bak = e.ev("Object.keys(__dir.e.notes_backup.e)[0]")
         check("the backup holds the file as it was", d.disk("notes_backup/" + bak)["notes"].get(other) == ["OTHER EDIT made elsewhere."])
         check("status no longer says unsaved", "저장 안 한" not in d.status(), d.status())
+
+        # from now on saving is automatic
+        check("the save button is hidden once saving is automatic", d.pwin(".document.getElementById('sv').style.display") == "none")
+        d.type("PROBE saved by itself.")
+        check("an edit saves by itself", wait(lambda: d.disk()["notes"].get(mine) == ["PROBE saved by itself."]), d.disk()["notes"].get(mine))
+        check("the status says so", wait(lambda: "자동 저장" in d.status()), d.status())
+        check("no new backup while one person keeps typing", d.backups() == 1, d.backups())
+        changed = d.disk()
+        changed["saved"], changed["notes"][other] = "elsewhere again", ["OTHER EDIT, second time."]
+        e.ev("__dir.e['notes.js'].text=%s" % json.dumps("window.DECK_NOTES = " + json.dumps(changed) + ";\n"))
+        d.type("PROBE after another edit.")
+        wait(lambda: d.disk()["notes"].get(mine) == ["PROBE after another edit."])
+        check("a file changed elsewhere is backed up before the next automatic save", d.backups() == 2, d.backups())
+        check("and the change made elsewhere is kept", d.disk()["notes"].get(other) == ["OTHER EDIT, second time."])
+        e.ev("window.__slow=2500")                       # typing on while a save is still being written
+        d.type("PROBE typed first.")
+        time.sleep(2.6)
+        d.type("PROBE typed while saving.")
+        time.sleep(6)
+        e.ev("window.__slow=0")
+        check("what was typed during a save is saved too (not dropped)", d.disk()["notes"].get(mine) == ["PROBE typed while saving."], d.disk()["notes"].get(mine))
+        check("and nothing is left unsaved", wait(lambda: "저장 안 한" not in d.status()), d.status())
 
         # another deck's assets folder chosen by mistake
         wrong = dict(d.disk(), deck="C:\\another\\deck\\presentation")

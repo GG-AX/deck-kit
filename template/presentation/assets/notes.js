@@ -3,7 +3,7 @@ window.DECK_NOTES = {
  "notes": {
   "cover": [
    "Good morning, everyone. Today I will walk you through our 2027 business plan.",
-   "(Sample script. Press P in the deck to open the presenter window, edit the text there and click 스크립트 저장 (Save). A blank line starts a new paragraph.)"
+   "(Sample script. Press P in the deck to open the presenter window, edit the text there — it saves by itself after you choose the assets folder once. A blank line starts a new paragraph.)"
   ],
   "video": [],
   "chapter": ["Let me start with the market overview."],
