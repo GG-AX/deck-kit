@@ -5,14 +5,15 @@ usage: python pdf.py [deck] [--out FILE] [--skip 2,7,closing]
   --out   default <deck workspace>\\<workspace folder name>.pdf
   --skip  more slides to leave out: numbers as in the deck (1 = first) or slide ids (data-src)
 One page per slide (1280×720), animations at their end state (?static).
-Full-screen video slides (.video-full) are left out; product-card clips show their photo.
+Full-screen video slides (.video-full) are left out, and so are slides marked "이 장 PDF에서 빼기" in the deck's
+review mode (assets/review.js); product-card clips show their photo.
 """
 import argparse
 import base64
 import json
 from pathlib import Path
 
-from deckutil import Chromium, deck_root, find_html
+from deckutil import Chromium, deck_root, find_html, read_js_data
 
 # before the deck's scripts run: motion.js may set window.MOTION, the engine then sees no clips and keeps the photos
 NO_MOTION = "Object.defineProperty(window, 'MOTION', {get: function () { return {}; }, set: function () {}});"
@@ -68,6 +69,9 @@ def main():
 
     html = find_html(a.deck)
     root = deck_root(html)
+    review = html.parent / "assets" / "review.js"
+    marked = read_js_data(review).get("nopdf", []) if review.exists() else []
+    skip += marked
     out = Path(a.out) if a.out else root / (root.name + ".pdf")
     # file access: the deck's own pictures may be read back from a canvas (JPEG step)
     with Chromium(size=(1280, 720), args=("--allow-file-access-from-files",)) as c:
@@ -80,6 +84,8 @@ def main():
     out.write_bytes(base64.b64decode(r["data"]))
     print("%s — %d pages%s (%.1f MB)" % (out, pages, ", %d slides left out" % cut if cut else "",
                                          out.stat().st_size / 1e6))
+    if marked:
+        print("검수에서 'PDF에서 빼기'로 표시한 장:", ", ".join(marked))
 
 
 if __name__ == "__main__":

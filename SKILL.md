@@ -63,15 +63,16 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
    - 가정 목록 — 묻지 않고 정한 것
    - 원본 문제 목록 — 화면에 자리표시로 둔 것
    - 자체 검수에서 고친 것과 남은 것
-6. **피드백 반영** — 검수 의견을 받을 때마다 이 순서로 한다.
+   - 검수하는 법: 덱에서 **R** → 고칠 곳을 클릭해 메모 → 저장(처음 한 번 `assets` 폴더 고르기) → "검수 의견 반영해줘". PDF에서 뺄 장은 그 장에서 "이 장 PDF에서 빼기". 채팅으로 말해도 된다
+6. **피드백 반영** — 검수 의견을 받을 때마다 이 순서로 한다. 덱 안 검수 메모(R)가 있으면 먼저 `python KIT/tools/review.py <덱 폴더> --shots work/review_shots`로 읽는다 — 핀마다 메모와 누른 곳(`at`: 그 자리의 글자·그림 파일)이 표로 나오고, 캡처에 핀 번호가 찍혀 있다. 메모가 가리키는 곳이 애매하면 계획표에서 "이렇게 이해했다"고 적고 확인받는다.
    1. **백업 먼저**: 코드를 하나라도 고치기 **전에** `python KIT/tools/snapshot.py vN_<이름> "한 줄 설명"`(N = 지금 라이브 번호). 고친 뒤에 백업하면 사본이 옛 덱과 어긋난다.
-   2. **수정 계획 보여 주기**: 받은 피드백 원문(메일·메시지)은 `docs/feedback/`에 날짜 이름으로 저장하고, 피드백을 `FEEDBACK.md`에 적고, 슬라이드별 수정 계획표(슬라이드 · 피드백 · 고칠 방법)를 사용자에게 보여 주고 확인받는다.
-   3. 반영 → 4번 자체 검수 → 압축(`compress.py`, 새로 넣은 파일만 바뀜)·PDF 다시 만들기(`pdf.py`) → 고친 것과 남은 것을 보고하고 `FEEDBACK.md` 상태와 `session.md`(백업 번호·슬라이드 수·lint 결과)를 지금 기준으로 고친다.
+   2. **수정 계획 보여 주기**: 받은 피드백 원문(메일·메시지, 검수 메모는 `review.py` 표)은 `docs/feedback/`에 날짜 이름으로 저장하고, 피드백을 `FEEDBACK.md`에 적고, 슬라이드별 수정 계획표(슬라이드 · 피드백 · 고칠 방법)를 사용자에게 보여 주고 확인받는다.
+   3. 반영 → 검수 메모는 핀마다 `review.py --resolve N "한 줄 답"`(무엇을 어떻게 고쳤는지 — 사용자가 덱의 "지난 의견 보기"에서 본다. 반영하지 않은 핀은 그대로 두고 이유를 보고) → 4번 자체 검수 → 압축(`compress.py`, 새로 넣은 파일만 바뀜)·PDF 다시 만들기(`pdf.py`, "PDF에서 빼기" 장은 알아서 빠짐) → 고친 것과 남은 것을 보고하고 `FEEDBACK.md` 상태와 `session.md`(백업 번호·슬라이드 수·lint 결과)를 지금 기준으로 고친다.
 
 ### 예전 키트로 만든 덱을 이어서 고칠 때
 
 - 엔진은 덱을 만들 때의 버전 그대로 둔다(lint가 WARN으로 알린다). 발표가 코앞이면 올리지 않는다.
-- 올릴 때: `snapshot.py`로 백업 → KIT `template/presentation/assets/`의 `engine.js`·`engine.css`를 덱 `assets/`에 덮어쓰고, 덱에 `Start Presentation.bat`·`assets/notes_server.ps1`이 있으면 지운다(v1.5부터 안 씀) → `shots.py`로 전 장을 찍어 백업 캡처와 비교한다(KIT `README.md` 엔진 버전 기록에서 바뀐 점을 본다).
+- 올릴 때: `snapshot.py`로 백업 → KIT `template/presentation/assets/`의 `engine.js`·`engine.css`를 덱 `assets/`에 덮어쓰고, 덱에 `Start Presentation.bat`·`assets/notes_server.ps1`이 있으면 지운다(v1.5부터 안 씀). v1.7 전 덱이면 KIT의 빈 `assets/review.js`를 복사하고 덱 .html의 notes.js 줄 다음에 `<script src="assets/review.js"></script>`를 넣는다(검수 모드) → `shots.py`로 전 장을 찍어 백업 캡처와 비교한다(KIT `README.md` 엔진 버전 기록에서 바뀐 점을 본다).
 - 덱 `CLAUDE.md`나 덱 도구에 `.claude/skills/deck-kit` 같은 옛 KIT 경로가 있으면 지운다. KIT 도구는 늘 이 스킬을 불러온 뒤 KIT 경로로 실행한다.
 
 ## 규칙
@@ -187,7 +188,7 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | 도구 | 쓰임 |
 | --- | --- |
 | `shots.py [덱] [--reports] [--size 1920,1080] [--jobs N]` | 전 슬라이드 캡처 → `work/shots/`, 덱 저장 시각과 콘솔 오류 출력. 실패한 장은 따로 다시 찍고, 그래도 안 되면 목록을 낸다. `--reports`: 보고서 미리보기를 `assets/img/reports/`에 만든다 |
-| `pdf.py [덱] [--out 파일] [--skip 2,7,id]` | 덱을 PDF로 인쇄(캡처가 아니라 글자 그대로 — 선명·검색 가능). 한 장 = 한 쪽, 연출은 끝난 모습, 화면 가득 영상 장은 빼고 카드 영상은 사진, `--skip`: 더 뺄 장(번호나 id). 기본 `<덱 폴더>/<폴더 이름>.pdf` |
+| `pdf.py [덱] [--out 파일] [--skip 2,7,id]` | 덱을 PDF로 인쇄(캡처가 아니라 글자 그대로 — 선명·검색 가능). 한 장 = 한 쪽, 연출은 끝난 모습, 화면 가득 영상 장과 검수에서 "PDF에서 빼기"한 장은 빼고 카드 영상은 사진, `--skip`: 더 뺄 장(번호나 id). 기본 `<덱 폴더>/<폴더 이름>.pdf` |
 | `compress.py [덱] [--dry-run]` | 공유 폴더 줄이기: 영상(1920px·6Mbit/s 넘으면 H.264로), 사진(긴 변 1600px), 보고서 .html 속 사진. 이름·형식 그대로, 10% 넘게 줄 때만 바꾸고 원본은 `work/compress_originals/`. 100MB 넘으면 경고 + 큰 파일 목록 |
 | `lint.py [덱]` | 작업 폴더 점검(읽기만 함): 태그 짝, 슬라이드 id, 남은 견본, 빠진 파일, 노트 키, 덱 스크립트, deck.css 중복·안 쓰는 클래스, 엔진이 키트와 같은지, 백업이 쓰는 파일, 양식 칸 남김 |
 | `snapshot.py vN_<이름> "설명" [덱]` | 피드백 반영 **전** 지금 덱 코드를 `versions/vN_<이름>/`에 백업하고 `versions/README.md` 표에 줄을 더한다 |
@@ -195,7 +196,8 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `images.py web｜cut｜trim｜fit <이미지…> --out 폴더` | 웹용 크기 · 배경 제거(투명) · 로고 여백 자르기(`--clear`: 흰 배경도 투명 — 트리맵처럼 로고를 칠하는 곳에 필요) · 인물을 같은 크기 캔버스에 |
 | `used_assets.py [덱] [--move]` | 안 쓰는 파일·빠진 파일 찾기(`--move`: `work/unused_assets/`로 옮김). `versions/` 백업이 쓰는 파일은 사용 중으로 친다 |
 | `dedupe_presentation.py [덱] [--dry]` | 똑같은 파일 정리 |
-| `notes_probe.py [덱]` | 발표자 창·스크립트 저장 시험 |
+| `review.py [덱] [--all] [--shots 폴더] [--resolve N "답"]` | 덱 안 검수 메모(R, `assets/review.js`) 읽기: 반영 안 한 핀 표(핀 · 장 · id · 메모 · 누른 곳), PDF에서 뺄 장. `--shots`: 핀이 찍힌 캡처. `--resolve`: 반영함 + 답(먼저 `assets/review_backup/`에 백업) |
+| `notes_probe.py [덱]` · `review_probe.py [덱]` | 발표자 창·스크립트 저장 시험 · 검수 모드 시험(덱 사본에서) |
 | `motion_run.py --plan plan.json [--dry-run]` | Higgsfield로 카드 영상 생성(기본 Kling 4.0 `kling4_0`, 5초 720p) — **크레딧. 먼저 `--dry-run`, 사용자 확인 후** |
 | `motion_post.py <clip.mp4> --image … [--box 280:450] [--link]` | 영상을 끊김 없는 반복 영상으로 만들고 motion.js에 연결 |
 | `motion_lib.py find｜add --key <스타일 번호> …` | 공용 영상 라이브러리에서 찾아 쓰기 · 새 영상 넣기. 위치는 사용자 설정 `DECKKIT_MOTION_LIB`(`/deck-kit:update`가 물어 저장), 없거나 접근 못 하면 건너뜀 |
@@ -207,5 +209,5 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 ## 사용자에게 알려 줄 사용법
 
 - 열기: `presentation/` 안 .html을 Edge나 Chrome으로 연다(더블클릭). 스크립트를 처음 저장할 때 한 번 `assets` 폴더를 고르면 다음부터 바로 저장된다(Safari 등은 notes.js가 내려받아진다). 저장할 때마다 바로 전 내용이 `assets/notes_backup/`에 남는다(최근 20개).
-- 키: ← → 이동 · F 전체 화면 · G 전체 보기 · P 발표자 창(스크립트 편집, Ctrl+S 저장) · Enter 영상 재생
+- 키: ← → 이동 · F 전체 화면 · G 전체 보기 · P 발표자 창(스크립트 편집, Ctrl+S 저장) · R 검수(고칠 곳 클릭 → 메모, Ctrl+S 저장) · Enter 영상 재생
 - 공유: `presentation` 폴더를 통째로 zip으로 보낸다. 덱을 열 수 없는 사람에게는 PDF(`pdf.py`)를 함께 보낸다. zip은 `presentation` **밖**(덱 폴더 `work/` 등)에 만든다 — 안에 두면 다음 zip에 zip이 들어간다. 자세한 안내는 폴더 안 `사용법 (How to use).txt`에 있다.

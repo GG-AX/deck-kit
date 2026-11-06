@@ -75,6 +75,15 @@ if (P / "assets" / "notes.js").exists():
         % (sorted(set(sl) - set(notes)) or "none", sorted(set(notes) - set(sl)) or "none"))
     add("Notes", "INFO", "slides with an empty script: %s" % ([k for k in sl if not notes.get(k)] or "none"))
 
+# 3b. review notes (R in the deck)
+if "assets/review.js" not in html:
+    add("Review", "WARN", 'the deck does not load assets/review.js — saved review pins will not show; add <script src="assets/review.js"></script> after notes.js (SKILL.md 옛 덱 올리기)')
+if (P / "assets" / "review.js").exists():
+    rv = read_js_data(P / "assets" / "review.js")
+    gone = sorted({p.get("slide") for p in rv.get("pins", []) if p.get("slide") not in sl} | {k for k in rv.get("nopdf", []) if k not in sl})
+    add("Review", "WARN" if gone else "OK", "review pins / PDF marks on slides not in the deck: %s" % (gone or "none"))
+    add("Review", "INFO", "open review pins: %d (tools/review.py)" % sum(not p.get("done") for p in rv.get("pins", [])))
+
 # 4. deck scripts and data
 pys = sorted(list((root / "work").glob("*.py")) + list((root / "tools").glob("*.py")))
 for f in pys:

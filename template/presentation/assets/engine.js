@@ -469,7 +469,7 @@
     document.getElementById("prog").style.width = ((idx + 1) / slides.length * 100) + "%";
     document.querySelectorAll("#dots i[data-k]").forEach(function (d) { d.classList.toggle("on", +d.getAttribute("data-k") === idx); });
     if (location.hash !== "#" + (idx + 1)) history.replaceState(null, "", "#" + (idx + 1));
-    playMedia(); updatePresenter();
+    playMedia(); updatePresenter(); rvClosePop(); rvSync();
   }
   function go(k) { idx = Math.max(0, Math.min(slides.length - 1, k)); render(); }
   function step(d) { go(idx + d); }
@@ -723,6 +723,196 @@
     presenter.document.getElementById("tm").textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
   }, 1000);
 
+  /* ---------- R: review mode — pins on the slides where something should change, saved in assets/review.js ----------
+     For the deck's maker on their own PC: click a spot, write what to fix, save, then ask the agent to apply it
+     (tools/review.py reads it). Pins sit in % of the slide, so they keep their place at any window size; each pin also
+     records what was under the click ("at"), so "this number" is clear to the agent. Applied pins are marked done with
+     the agent's reply and stay, dimmed, under "지난 의견 보기". "이 장 PDF에서 빼기" marks are read by tools/pdf.py.
+     Nothing is built until R is pressed, so slides and screenshots stay exactly as they were. */
+  var RV = window.DECK_REVIEW || { saved: "", next: 1, pins: [], nopdf: [] };
+  var RV_SHOT = /[?&]review\b/.test(location.search);   // screenshots for the agent: open pins drawn, nothing else
+  var RVDRAFT = KEY + "|review-draft", rvEdits = { pins: {}, nopdf: {} }, rvDirty = false, reviewing = false, rvOpen = null, rvDrag = null;
+  try {   // pin edits made here and not saved yet (by pin id; null = deleted), kept on top of whatever review.js holds
+    var rd = JSON.parse(localStorage.getItem(RVDRAFT) || "null");
+    if (rd && rd.pins) { rvEdits = rd; rvDirty = true; }
+  } catch (e) {}
+  function rvPins() {
+    var out = [], seen = {};
+    (RV.pins || []).forEach(function (p) {
+      var e = rvEdits.pins[p.id]; seen[p.id] = 1;
+      if (e === null) return;
+      out.push(e && !e.fresh ? Object.assign({}, p, e) : p);
+    });
+    for (var id in rvEdits.pins) { var e = rvEdits.pins[id]; if (e && e.fresh) out.push(e); }   // edits of a pin gone from the file are dropped
+    return out;
+  }
+  function rvNopdf(base) {   // slide ids, in slide order
+    var s = {};
+    (base || []).forEach(function (k) { s[k] = 1; });
+    for (var k in rvEdits.nopdf) { if (rvEdits.nopdf[k]) s[k] = 1; else delete s[k]; }
+    return Object.keys(bySlide(s));
+  }
+  function rvNextId() {
+    var m = (RV.next || 1) - 1;
+    rvPins().forEach(function (p) { m = Math.max(m, p.id); });
+    return m + 1;
+  }
+  function rvEdit(id, fields) {   // fields = null deletes the pin
+    var cur = rvEdits.pins[id];
+    if (fields === null) { if (cur && cur.fresh) delete rvEdits.pins[id]; else rvEdits.pins[id] = null; }
+    else rvEdits.pins[id] = Object.assign(cur || { id: id }, fields);
+  }
+  function rvKeep(noDraw) {
+    rvDirty = Object.keys(rvEdits.pins).length + Object.keys(rvEdits.nopdf).length > 0;
+    try { if (rvDirty) localStorage.setItem(RVDRAFT, JSON.stringify(rvEdits)); else localStorage.removeItem(RVDRAFT); } catch (e) {}
+    if (!noDraw) rvDraw();
+    rvSync();
+  }
+  var RVSTORE = {
+    file: "review.js", global: "DECK_REVIEW", what: "검수 메모",
+    merge: function (disk) {   // the file as it is now (the agent may have marked pins done) + the pin edits made here
+      disk = disk || {};
+      var byId = {}, max = (disk.next || 1) - 1, out = [], id, e;
+      (disk.pins || []).forEach(function (p) {
+        byId[p.id] = 1; max = Math.max(max, p.id);
+        e = rvEdits.pins[p.id];
+        if (e === null) return;
+        out.push(e && !e.fresh ? Object.assign({}, p, e) : p);   // done/reply from the file stay
+      });
+      for (id in rvEdits.pins) {
+        e = rvEdits.pins[id];
+        if (!e || !e.fresh) continue;
+        var n = Object.assign({}, e); delete n.fresh;
+        if (byId[n.id]) n.id = max + 1;   // that number was taken in the file meanwhile
+        max = Math.max(max, n.id); byId[n.id] = 1; out.push(n);
+      }
+      return { next: max + 1, pins: out.sort(function (a, b) { return a.id - b.id; }), nopdf: rvNopdf(disk.nopdf) };
+    },
+    all: function () {
+      return { next: rvNextId(), pins: rvPins().map(function (p) { var n = Object.assign({}, p); delete n.fresh; return n; }), nopdf: rvNopdf(RV.nopdf) };
+    },
+    foreign: function (disk) { var ps = disk.pins || []; return ps.length && !ps.some(function (p) { return isSlide(p.slide); }); },
+    saved: function (data) { RV = data; rvEdits = { pins: {}, nopdf: {} }; rvKeep(); },
+    status: rvStatus
+  };
+  function pct(v, w) { return Math.round(Math.max(0, Math.min(100, v / w * 100)) * 10) / 10; }
+  function rvAt(x, y, slide) {   // what is under the click: its text, its picture, its tag — for the agent to find the spot
+    var hits = document.elementsFromPoint(x, y), t = null;
+    for (var i = 0; i < hits.length; i++) {
+      if (hits[i].closest(".rv-layer")) continue;
+      if (slide.contains(hits[i])) t = hits[i];
+      break;
+    }
+    if (!t || t === slide) return "빈 곳";
+    var parts = [], txt = (t.innerText || t.textContent || "").replace(/\s+/g, " ").trim();
+    var img = t.tagName === "IMG" ? t.getAttribute("src") : t.tagName === "VIDEO" ? (t.getAttribute("poster") || t.getAttribute("src")) :
+      (/url\("?([^")]+)/.exec(getComputedStyle(t).backgroundImage) || [])[1];
+    if (txt) parts.push("글자: " + (txt.length > 60 ? txt.slice(0, 60) + "…" : txt));
+    if (img) parts.push("그림: " + decodeURIComponent(img.split(/[\\/]/).pop()));
+    parts.push(t.tagName.toLowerCase() + [].map.call(t.classList, function (c) { return "." + c; }).join(""));
+    return parts.join(" · ");
+  }
+  function rvLayer(s) {
+    var l = s.querySelector(":scope > .rv-layer");
+    if (l) return l;
+    l = el("div", "rv-layer"); s.appendChild(l);
+    l.addEventListener("pointerdown", function (e) {   // the layer covers the slide: clicks never reach its buttons
+      if (!reviewing || e.button !== 0) return;
+      e.preventDefault(); e.stopPropagation();
+      var pin = e.target.closest(".rv-pin"), r = s.getBoundingClientRect();
+      if (pin) { rvDrag = { id: +pin.getAttribute("data-id"), el: pin, x0: e.clientX, y0: e.clientY, r: r, moved: false }; pin.setPointerCapture(e.pointerId); return; }
+      if (rvOpen !== null) { rvClosePop(); return; }   // a click beside an open note only closes it
+      var id = rvNextId();
+      rvEdit(id, { slide: s.getAttribute("data-src"), x: pct(e.clientX - r.left, r.width), y: pct(e.clientY - r.top, r.height),
+        note: "", at: rvAt(e.clientX, e.clientY, s), time: new Date().toISOString(), done: false, reply: "", fresh: true });
+      rvKeep(); rvOpenPop(id);
+    });
+    l.addEventListener("pointermove", function (e) {
+      var d = rvDrag; if (!d) return;
+      if (Math.abs(e.clientX - d.x0) + Math.abs(e.clientY - d.y0) > 4) d.moved = true;
+      if (d.moved) { d.el.style.left = pct(e.clientX - d.r.left, d.r.width) + "%"; d.el.style.top = pct(e.clientY - d.r.top, d.r.height) + "%"; }
+    });
+    l.addEventListener("pointerup", function (e) {
+      var d = rvDrag; if (!d) return;
+      rvDrag = null;
+      if (d.moved) { rvEdit(d.id, { x: pct(e.clientX - d.r.left, d.r.width), y: pct(e.clientY - d.r.top, d.r.height) }); rvKeep(); }
+      else rvOpenPop(d.id);
+    });
+    return l;
+  }
+  function rvDraw() {
+    var pins = rvPins(), off = rvNopdf(RV.nopdf);
+    slides.forEach(function (s) {
+      var src = s.getAttribute("data-src"), l = rvLayer(s);
+      l.innerHTML = (off.indexOf(src) >= 0 ? '<div class="rv-nopdf">PDF에서 뺌</div>' : "") + pins.filter(function (p) { return p.slide === src; }).map(function (p) {
+        return '<div class="rv-pin' + (p.done ? " done" : "") + (p.id === rvOpen ? " on" : "") + '" data-id="' + p.id + '" style="left:' + p.x + "%;top:" + p.y + '%">' + p.id + "</div>";
+      }).join("");
+    });
+  }
+  function rvBuild() {
+    if (document.getElementById("rvbar")) return;
+    var b = el("div", "rv-bar", '<b>검수 중</b><span id="rvn"></span><label><input type="checkbox" id="rvpdf"> 이 장 PDF에서 빼기</label>' +
+      '<label><input type="checkbox" id="rvold"> 지난 의견 보기</label><button id="rvsv" title="Ctrl+S">저장</button><span id="rvst"></span>' +
+      '<button id="rvx">끝내기 (R)</button><small>고칠 곳을 클릭하면 메모가 붙습니다 · 핀은 끌어서 옮깁니다 · 저장한 뒤 에이전트에게 "검수 의견 반영해줘"</small>');
+    b.id = "rvbar"; document.body.appendChild(b);
+    var p = el("div", "rv-pop", '<b></b><div class="rv-done"></div><textarea placeholder="무엇을 어떻게 고칠지 적어 주세요"></textarea>' +
+      '<div class="rv-at"></div><footer><button class="del">삭제</button><button class="ok">닫기</button></footer>');
+    p.id = "rvpop"; document.body.appendChild(p);
+    document.getElementById("rvpdf").onchange = function () { rvEdits.nopdf[slides[idx].getAttribute("data-src")] = this.checked; rvKeep(); this.blur(); };
+    document.getElementById("rvold").onchange = function () { document.body.classList.toggle("rv-old", this.checked); rvClosePop(); this.blur(); };
+    document.getElementById("rvsv").onclick = function () { saveStore(window, RVSTORE); };
+    document.getElementById("rvx").onclick = function () { toggleReview(false); };
+    p.querySelector("textarea").addEventListener("input", function () { rvEdit(rvOpen, { note: this.value }); rvKeep(true); });
+    p.querySelector(".del").onclick = function () { rvEdit(rvOpen, null); rvOpen = null; p.classList.remove("open"); rvKeep(); };
+    p.querySelector(".ok").onclick = function () { rvClosePop(); };
+    addEventListener("beforeunload", function (e) { if (rvDirty) { e.preventDefault(); e.returnValue = ""; } });
+  }
+  function rvOpenPop(id) {
+    var pin = rvPins().filter(function (q) { return q.id === id; })[0];
+    if (!pin) return;
+    rvOpen = id; rvDraw();
+    var p = document.getElementById("rvpop"), ta = p.querySelector("textarea"), mark = document.querySelector('.rv-pin[data-id="' + id + '"]');
+    p.querySelector("b").textContent = "메모 " + id;
+    p.querySelector(".rv-done").textContent = pin.done ? "반영함 — " + (pin.reply || "") : "";
+    p.querySelector(".rv-at").textContent = pin.at ? "누른 곳: " + pin.at : "";
+    ta.value = pin.note || ""; ta.readOnly = !!pin.done;
+    p.querySelector(".del").style.display = pin.done ? "none" : "";
+    p.classList.add("open");
+    var r = mark.getBoundingClientRect(), w = p.offsetWidth, h = p.offsetHeight;
+    p.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right + 10)) + "px";
+    p.style.top = Math.max(8, Math.min(innerHeight - h - 8, r.top)) + "px";
+    if (!pin.done) ta.focus();
+  }
+  function rvClosePop() {
+    if (rvOpen === null) return;
+    var e = rvEdits.pins[rvOpen];
+    if (e && e.fresh && !(e.note || "").trim()) rvEdit(rvOpen, null);   // a pin left without a note is not kept
+    rvOpen = null;
+    document.getElementById("rvpop").classList.remove("open");
+    rvKeep();
+  }
+  function rvSync() {   // the bar follows the current slide
+    if (!reviewing) return;
+    var src = slides[idx].getAttribute("data-src"), open = rvPins().filter(function (p) { return !p.done; });
+    document.getElementById("rvn").textContent = "의견 " + open.length + "개 (이 장 " + open.filter(function (p) { return p.slide === src; }).length + ")";
+    document.getElementById("rvpdf").checked = rvNopdf(RV.nopdf).indexOf(src) >= 0;
+    rvStatus();
+  }
+  function rvStatus(msg, ok) {
+    var st = document.getElementById("rvst");
+    if (!st) return;
+    if (msg) { st.textContent = msg; st.className = ok ? "ok" : ""; return; }
+    st.className = rvDirty ? "dirty" : "";
+    st.textContent = rvDirty ? "저장 안 함" : RV.saved ? "저장됨 " + new Date(RV.saved).toLocaleString() : "";
+  }
+  function toggleReview(on) {
+    reviewing = on != null ? on : !reviewing;
+    if (reviewing) { rvBuild(); rvDraw(); toggleOverview(false); }
+    else rvClosePop();
+    document.body.classList.toggle("reviewing", reviewing);
+    rvSync();
+  }
+
   /* ---------- D: frame-rate meter for checking playback on the presentation laptop (hidden by default) ---------- */
   var meter = null;
   function perfMeter() {
@@ -742,8 +932,10 @@
   }
 
   function onKey(e) {
+    if (e.target && e.target.tagName === "TEXTAREA") { if (e.key === "Escape") rvClosePop(); return; }   // typing a review note
+    if (reviewing && (e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) { e.preventDefault(); saveStore(window, RVSTORE); return; }
     var ov = document.getElementById("overlay").classList.contains("open");
-    if (e.key === "Escape") { if (ov) closeReport(); toggleOverview(false); return; }
+    if (e.key === "Escape") { if (ov) closeReport(); toggleOverview(false); rvClosePop(); return; }
     if (ov) return;
     var k = e.key;
     if (k === "Enter") { var box = slides[idx].querySelector(".vbox"); if (box) { box._toggle(); e.preventDefault(); } }
@@ -756,12 +948,13 @@
     else if (k === "p" || k === "P") openPresenter();
     else if (k === "d" || k === "D") perfMeter();
     else if (k === "h" || k === "H") document.body.classList.toggle("noguide");
+    else if (k === "r" || k === "R") toggleReview();
   }
 
   /* ---------- chrome: background, bars, report overlay, overview ----------
      Built here so a deck's HTML holds only its slides. The top bar comes from
      <body data-logo="assets/img/logo.webp" data-topline="Company · Event">. */
-  var KEYS = "← → move · Enter play video · F full screen · G overview · P presenter";
+  var KEYS = "← → move · Enter play video · F full screen · G overview · P presenter · R review";
   function buildChrome() {
     if (document.getElementById("bg")) return;   // decks that still write these in their HTML
     var logo = document.body.getAttribute("data-logo"), line = document.body.getAttribute("data-topline");
@@ -804,6 +997,7 @@
     var n = parseInt(location.hash.slice(1), 10);
     idx = n ? Math.min(slides.length, n) - 1 : 0;
     fit(); render();
+    if (RV_SHOT) { document.documentElement.classList.add("rv-shot"); rvDraw(); }
   }
   document.addEventListener("DOMContentLoaded", init);
 })();
