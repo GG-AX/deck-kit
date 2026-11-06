@@ -82,7 +82,7 @@ def main():
         e.key("r", "KeyR")
         check("R shows the review bar", e.ev("getComputedStyle(document.getElementById('rvbar')).display") == "flex")
         check("the first R asks for the folder and saves", wait(lambda: disk().get("deck")), disk())
-        check("then saving is automatic: no save button", e.ev("document.getElementById('rvsv').style.display") == "none")
+        check("the save button stays (saving right away is still possible)", e.ev("document.getElementById('rvsv').offsetWidth") > 0)
         check("the old review.js is backed up", e.ev("Object.keys(__dir.e.review_backup.e).length") == 1)
 
         # a click on the report button: a pin, not the report

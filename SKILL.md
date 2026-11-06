@@ -208,6 +208,6 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 
 ## 사용자에게 알려 줄 사용법
 
-- 열기: `presentation/` 안 .html을 Edge나 Chrome으로 연다(더블클릭). 처음 한 번 `assets` 폴더를 고르면(발표자 창의 [스크립트 저장] 또는 검수 모드의 첫 R) 그다음부터 스크립트와 검수 메모는 고칠 때마다 자동으로 저장된다(Safari 등은 자동 저장이 안 되고 [저장]이 notes.js·review.js를 내려받는다). 저장 직전 내용은 `assets/notes_backup/`·`review_backup/`에 남는다(최근 20개, 한 사람이 계속 고치는 동안은 10분에 하나).
+- 열기: `presentation/` 안 .html을 Edge나 Chrome으로 연다(더블클릭). 처음 한 번 `assets` 폴더를 고르면(발표자 창의 [스크립트 저장] 또는 검수 모드의 첫 R) 그다음부터 스크립트와 검수 메모는 고칠 때마다 자동으로 저장된다(저장 버튼은 그대로 있어 누르면 바로 저장. Safari 등은 자동 저장이 안 되고 [저장]이 notes.js·review.js를 내려받는다). 저장 직전 내용은 `assets/notes_backup/`·`review_backup/`에 남는다(최근 20개, 한 사람이 계속 고치는 동안은 10분에 하나).
 - 키: ← → 이동 · F 전체 화면 · G 전체 보기 · P 발표자 창(스크립트 편집, 자동 저장) · R 검수(고칠 곳 클릭 → 메모, 자동 저장) · Enter 영상 재생
 - 공유: `presentation` 폴더를 통째로 zip으로 보낸다. 덱을 열 수 없는 사람에게는 PDF(`pdf.py`)를 함께 보낸다. zip은 `presentation` **밖**(덱 폴더 `work/` 등)에 만든다 — 안에 두면 다음 zip에 zip이 들어간다. 자세한 안내는 폴더 안 `사용법 (How to use).txt`에 있다.

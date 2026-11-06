@@ -156,7 +156,7 @@ def main():
         check("status no longer says unsaved", "저장 안 한" not in d.status(), d.status())
 
         # from now on saving is automatic
-        check("the save button is hidden once saving is automatic", d.pwin(".document.getElementById('sv').style.display") == "none")
+        check("the save button stays (saving right away is still possible)", d.pwin(".document.getElementById('sv').offsetWidth") > 0)
         d.type("PROBE saved by itself.")
         check("an edit saves by itself", wait(lambda: d.disk()["notes"].get(mine) == ["PROBE saved by itself."]), d.disk()["notes"].get(mine))
         check("the status says so", wait(lambda: "자동 저장" in d.status()), d.status())

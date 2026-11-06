@@ -694,7 +694,6 @@
     var st = presenter.document.getElementById("st");
     if (msg) { st.textContent = msg; st.className = ok ? "ok" : ""; return; }
     var n = Object.keys(EDITED).length;
-    presenter.document.getElementById("sv").style.display = autoDir ? "none" : "";   // only needed for the first save
     st.className = dirty ? "dirty" : "";
     st.textContent = dirty ? "저장 안 한 수정 " + n + "장" + (draftStale ? " — notes.js가 그 뒤 바뀌었습니다. 저장하면 최신 파일에 합쳐집니다" : "") +
         (autoDir ? " — 곧 자동 저장" : " — [스크립트 저장]을 한 번 누르면 그다음부터 자동으로 저장됩니다") :
@@ -971,7 +970,6 @@
     var st = document.getElementById("rvst");
     if (!st) return;
     if (msg) { st.textContent = msg; st.className = ok ? "ok" : ""; return; }
-    document.getElementById("rvsv").style.display = autoDir ? "none" : "";   // only needed for the first save
     st.className = rvDirty ? "dirty" : "";
     st.textContent = rvDirty ? (autoDir ? "곧 자동 저장" : "[저장]을 한 번 누르면 그다음부터 자동으로 저장됩니다") :
       RV.saved ? "저장됨 " + new Date(RV.saved).toLocaleTimeString() : autoDir ? "메모는 자동으로 저장됩니다" : "";
