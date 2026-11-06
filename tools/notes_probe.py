@@ -142,7 +142,10 @@ def main():
         changed = read_js_data(html.parent / "assets" / "notes.js")
         changed["saved"], changed["notes"][other] = "elsewhere", ["OTHER EDIT made elsewhere."]
         d.fake_folder("window.DECK_NOTES = " + json.dumps(changed) + ";\n")
+        d.pwin(".eval(\"Object.defineProperty(navigator,'clipboard',{value:{writeText:function(t){window.__copied=t;return Promise.resolve()}}})\")")
         check("save reports success", "저장했습니다" in d.save(), d.status())
+        copied = d.pwin(".__copied") or ""
+        check("the assets path is copied for the folder dialog", copied.lower() == d.key[len("deck:"):] + "\\assets", copied)
         n = d.disk()["notes"]
         check("the edit is saved", n.get(mine, [""])[0] == "PROBE line one.", n.get(mine))
         check("an edit made elsewhere since opening is kept", n.get(other) == ["OTHER EDIT made elsewhere."], n.get(other))

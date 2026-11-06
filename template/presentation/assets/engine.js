@@ -628,7 +628,9 @@
       if (h) { autoDir = true; return h; }
       autoDir = false;
       if (quiet) throw new Error("ask");
-      st.status("이 덱의 assets 폴더를 골라 주세요: " + showDir() + " (복사본마다 처음 한 번)");
+      // a page cannot open the dialog at a path, so the path goes to the clipboard: paste it into the dialog
+      try { win.navigator.clipboard.writeText(showDir()).catch(function () {}); } catch (e) {}
+      st.status("이 덱의 assets 폴더를 골라 주세요(덱마다 처음 한 번) — 경로를 복사해 두었습니다: 창의 '폴더' 칸에 Ctrl+V → Enter → [폴더 선택] · " + showDir());
       return win.showDirectoryPicker({ id: "deckkit-assets", mode: "readwrite" }).then(function (d) {
         return d.getFileHandle("engine.js").then(function () {
           idb("readwrite", function (s) { return s.put(d, "assetsDir"); }, win).catch(function () {});
