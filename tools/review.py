@@ -10,6 +10,7 @@ usage: python review.py [deck] [--all] [--shots DIR] [--resolve N "what was done
              repeat for more pins. The file is backed up first (assets\\review_backup\\, last 20, like the engine)
 """
 import argparse
+import html as htmllib
 import json
 import re
 import shutil
@@ -29,7 +30,7 @@ def slides(html):
         src = re.search(r'\bdata-src="([^"]*)"', tag)
         if src:
             t = re.search(r'\bdata-title="([^"]*)"', tag)
-            out.append((src.group(1), t.group(1) if t else ""))
+            out.append((src.group(1), htmllib.unescape(t.group(1)) if t else ""))
     return out
 
 
