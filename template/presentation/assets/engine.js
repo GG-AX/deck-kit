@@ -923,7 +923,7 @@
       '<label><input type="checkbox" id="rvold"> 지난 의견 보기</label><button id="rvsv" title="Ctrl+S">저장</button><span id="rvst"></span>' +
       '<button id="rvx">끝내기 (R)</button><small>고칠 곳을 클릭하면 메모가 붙습니다 · 핀은 끌어서 옮깁니다 · 메모는 자동으로 저장됩니다 · 다 적었으면 에이전트에게 "검수 의견 반영해줘"</small>');
     b.id = "rvbar"; document.body.appendChild(b);
-    var p = el("div", "rv-pop", '<b></b><div class="rv-done"></div><textarea placeholder="무엇을 어떻게 고칠지 적어 주세요"></textarea>' +
+    var p = el("div", "rv-pop", '<b></b><div class="rv-done"></div><textarea placeholder="무엇을 어떻게 고칠지 적어 주세요 — Enter = 완료, Shift+Enter = 줄바꿈"></textarea>' +
       '<div class="rv-at"></div><footer><button class="del">삭제</button><button class="ok">닫기</button></footer>');
     p.id = "rvpop"; document.body.appendChild(p);
     document.getElementById("rvpdf").onchange = function () { rvEdits.nopdf[slides[idx].getAttribute("data-src")] = this.checked; rvKeep(); this.blur(); };
@@ -1003,7 +1003,11 @@
   }
 
   function onKey(e) {
-    if (e.target && e.target.tagName === "TEXTAREA") { if (e.key === "Escape") rvClosePop(); return; }   // typing a review note
+    if (e.target && e.target.tagName === "TEXTAREA") {   // typing a review note: Enter finishes it, Shift+Enter = new line
+      // not while a Korean (IME) syllable is still being composed — that Enter only completes the syllable
+      if (e.key === "Escape" || (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229)) { e.preventDefault(); rvClosePop(); }
+      return;
+    }
     if (reviewing && (e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) { e.preventDefault(); saveStore(window, RVSTORE); return; }
     var ov = document.getElementById("overlay").classList.contains("open");
     if (e.key === "Escape") { if (ov) closeReport(); toggleOverview(false); rvClosePop(); return; }

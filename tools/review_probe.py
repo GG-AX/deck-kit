@@ -152,7 +152,13 @@ def main():
         note("PROBE mine, changed")
         check("later edits go to the renumbered pin (no copy)", wait(lambda: pins().get(4, {}).get("note") == "PROBE mine, changed") and sorted(pins()) == [1, 2, 3, 4],
               {i: p["note"] for i, p in pins().items()})
-        e.key("Escape")
+        ta = "document.querySelector('#rvpop textarea')"
+        e.ev("%s.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',shiftKey:true,bubbles:true}))" % ta)
+        check("Shift+Enter keeps the note open (new line)", e.ev("document.getElementById('rvpop').classList.contains('open')"))
+        e.ev("%s.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true}))" % ta)
+        check("Enter that completes a Korean syllable keeps it open", e.ev("document.getElementById('rvpop').classList.contains('open')"))
+        e.ev("%s.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))" % ta)
+        check("Enter finishes the note", not e.ev("document.getElementById('rvpop').classList.contains('open')"))
         check("done pins are hidden until 지난 의견 보기", e.ev("getComputedStyle(document.querySelector('.rv-pin.done')).display") == "none")
         e.ev("location.hash='#1'")
         time.sleep(0.4)
