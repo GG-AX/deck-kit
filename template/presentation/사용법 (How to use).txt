@@ -13,9 +13,11 @@
 
 4. 스크립트 고치기
    스크립트 창의 글자를 클릭해서 그대로 고치면 됩니다. (빈 줄 = 새 문단)
-   다 고친 뒤 창 아래의 밝은 색 [Save notes] 버튼을 누르세요. (Ctrl + S 도 됩니다)
-   "✓ Saved" 가 보이면 저장된 것입니다.
-   처음 한 번 assets\notes.js 를 고르라는 창이 뜹니다. 그 파일을 고르면 다음부터는 바로 저장됩니다.
+   다 고친 뒤 창 아래의 밝은 색 [스크립트 저장] 버튼을 누르세요. (Ctrl + S 도 됩니다)
+   "✓ 저장했습니다" 가 보이면 저장된 것입니다.
+   처음 한 번 폴더를 고르라는 창이 뜹니다. 이 폴더 안의 assets 폴더를 고르세요. 다음부터는 바로 저장됩니다.
+   저장할 때마다 바로 전 내용이 assets\notes_backup 에 남습니다(최근 20개). 잘못 저장했으면
+   에이전트에게 "스크립트 이전 것으로 되돌려줘"라고 하면 됩니다.
 
 
 발표 전 PC 설정 (영상이 끊기지 않게)
@@ -117,8 +119,9 @@ How to use (English)
 1. Open the presentation .html with Edge or Chrome (double-click).
 2. Arrow keys or NEXT/PREV to move. F = full screen, G = overview, Enter = play video.
 3. Press P for the presenter window with the script.
-4. Edit the script there, then click [Save notes] (or Ctrl+S). "✓ Saved" = done.
-   The first time, a window asks for assets/notes.js: choose it, and later saves go straight there.
+4. Edit the script there, then click [스크립트 저장] (Save, or Ctrl+S). "✓ 저장했습니다" = done.
+   The first time, a window asks for a folder: choose the assets folder, and later saves go straight there.
+   Each save keeps the previous script in assets/notes_backup (last 20).
 
 Before presenting on a big screen (smooth video)
 - Plug in the charger; Windows power mode = "Best performance"

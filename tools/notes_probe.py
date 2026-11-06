@@ -5,7 +5,9 @@ usage: python notes_probe.py [deck] [--other DECK]
   --other  a second deck or copy: its drafts and presenter window must stay separate from the first
 Checks: the presenter window (P) shows the slide's notes; an edit is kept as a draft and survives a reload;
 arrow keys typed in the notes do not move slides; the notes follow slide changes.
-Choosing the file to save to needs a real file dialog, so that path is only checked for availability.
+Saving runs against an in-memory assets folder put in place of the folder dialog (nothing on disk is written):
+edits made elsewhere since the deck was opened are kept, the replaced file is backed up (last 20),
+another deck's folder is refused, and a draft made before notes.js changed is merged, not dropped.
 """
 import argparse
 import json
@@ -61,6 +63,42 @@ class Deck:
     def status(self):
         return self.e.ev(self.P + ".getElementById('st').textContent") or ""
 
+    def pwin(self, js):
+        return self.e.ev("window.open('', %s)%s" % (json.dumps(self.key + "|presenter"), js))
+
+    def fake_folder(self, notes_text):
+        """An in-memory assets folder (engine.js + notes.js) answers the presenter's folder dialog."""
+        self.e.ev(FAKE_FS + "window.__dir=__mkdir();__dir.e['engine.js']={text:'x'};__dir.e['notes.js']={text:%s};" % json.dumps(notes_text))
+        self.pwin(".showDirectoryPicker=function(){return Promise.resolve(window.__dir)}")   # made here: window = the deck
+
+    def disk(self, path="notes.js"):
+        """A file of the fake folder ('a/b' = in a subfolder), parsed like read_js_data."""
+        t = self.e.ev("(function(){var d=__dir,p=%s.split('/');for(var i=0;i<p.length-1;i++)d=d.e[p[i]];return d.e[p[p.length-1]].text})()" % json.dumps(path))
+        return json.loads(t[t.index("{"):t.rindex("}") + 1])
+
+    def backups(self):
+        return self.e.ev("Object.keys((__dir.e.notes_backup||{e:{}}).e).length")
+
+    def save(self):
+        self.e.ev(self.P + ".getElementById('st').textContent=''")
+        self.e.ev(self.P + ".getElementById('sv').click()")
+        wait(lambda: any(w in self.status() for w in ("저장했습니다", "저장하지 못했습니다")))
+        return self.status()
+
+
+# in-memory stand-in for the File System Access folder handle (only the calls the engine makes)
+FAKE_FS = """window.__mkdir=function(){
+ function nf(){return Promise.reject(new DOMException('no such entry','NotFoundError'))}
+ function Dir(){this.kind='directory';this.e={};this.f=nf}   // own function: cannot be stored in IndexedDB, so never remembered
+ Dir.prototype.getFileHandle=function(n,o){var e=this.e;if(!(n in e)){if(!(o&&o.create))return nf();e[n]={text:''}}var f=e[n];
+  return Promise.resolve({name:n,getFile:function(){return Promise.resolve({text:function(){return Promise.resolve(f.text)}})},
+   createWritable:function(){var b='';return Promise.resolve({write:function(t){b+=t;return Promise.resolve()},close:function(){f.text=b;return Promise.resolve()}})}})};
+ Dir.prototype.getDirectoryHandle=function(n,o){var e=this.e;if(!(n in e)){if(!(o&&o.create))return nf();e[n]=new Dir()}return Promise.resolve(e[n])};
+ Dir.prototype.keys=function(){var k=Object.keys(this.e),i=0;return{next:function(){return Promise.resolve(i<k.length?{done:false,value:k[i++]}:{done:true})}}};
+ Dir.prototype.removeEntry=function(n){delete this.e[n];return Promise.resolve()};
+ Dir.prototype.requestPermission=function(){return Promise.resolve('granted')};
+ return new Dir()};"""
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -75,11 +113,11 @@ def main():
         e.reload()
         check("presenter window opens", d.presenter())
         check("it shows the notes of slide %d" % d.n, d.notes_text().startswith(d.first), repr(d.notes_text()[:60]))
-        check("saving by file choice is available", e.ev("typeof window.open('', %s).showSaveFilePicker" % json.dumps(d.key + "|presenter")) == "function")
+        check("saving by folder choice is available", d.pwin(".showDirectoryPicker && 'yes'") == "yes")
         d.type("PROBE line one.\n\nPROBE line two.")
         draft = e.ev("localStorage.getItem(%s) || ''" % json.dumps(d.key + "|notes-draft"))
         check("an edit is kept as a draft (under this folder's key)", '"PROBE line one."' in draft and '"PROBE line two."' in draft)
-        check("status says unsaved", "Unsaved" in d.status(), d.status())
+        check("status says unsaved", "저장 안 한" in d.status(), d.status())
         e.ev("(function(d){var t=d.getElementById('no');t.focus();t.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}))})(%s)" % d.P)
         time.sleep(0.3)
         check("an arrow key typed in the notes does not move the slide", e.ev("location.hash") == "#%d" % d.n, e.ev("location.hash"))
@@ -94,6 +132,48 @@ def main():
         e.reload()
         d.presenter()
         check("the draft survives a reload", d.notes_text().startswith("PROBE line one."))
+
+        # saving after notes.js was changed elsewhere (the agent, OneDrive) since the deck was opened
+        ids = slide_ids(html)
+        mine, other = ids[d.n - 1], next(s for s in ids if s != ids[d.n - 1])
+        on_disk = (html.parent / "assets" / "notes.js").read_text(encoding="utf-8")
+        changed = read_js_data(html.parent / "assets" / "notes.js")
+        changed["saved"], changed["notes"][other] = "elsewhere", ["OTHER EDIT made elsewhere."]
+        d.fake_folder("window.DECK_NOTES = " + json.dumps(changed) + ";\n")
+        check("save reports success", "저장했습니다" in d.save(), d.status())
+        n = d.disk()["notes"]
+        check("the edit is saved", n.get(mine, [""])[0] == "PROBE line one.", n.get(mine))
+        check("an edit made elsewhere since opening is kept", n.get(other) == ["OTHER EDIT made elsewhere."], n.get(other))
+        check("the deck's folder is written in the file", "deck:" + d.disk()["deck"].lower() == d.key, d.disk().get("deck"))
+        check("the replaced file is backed up", d.backups() == 1, d.backups())
+        bak = e.ev("Object.keys(__dir.e.notes_backup.e)[0]")
+        check("the backup holds the file as it was", d.disk("notes_backup/" + bak)["notes"].get(other) == ["OTHER EDIT made elsewhere."])
+        check("status no longer says unsaved", "저장 안 한" not in d.status(), d.status())
+
+        # another deck's assets folder chosen by mistake
+        wrong = dict(d.disk(), deck="C:\\another\\deck\\presentation")
+        d.fake_folder("window.DECK_NOTES = " + json.dumps(wrong) + ";\n")
+        d.type("PROBE wrong folder.")
+        d.pwin(".confirm=function(){return false}")
+        d.e.ev(d.P + ".getElementById('sv').click()")
+        time.sleep(1)
+        check("another deck's notes.js is not overwritten", d.disk()["deck"].startswith("C:\\another"), d.disk()["deck"])
+        check("nothing is lost: the edit is still unsaved", "저장 안 한" in d.status(), d.status())
+
+        # a draft made before notes.js changed: kept and merged on save, not dropped
+        dk = json.dumps(d.key + "|notes-draft")
+        e.ev("localStorage.setItem(%s, JSON.stringify(Object.assign(JSON.parse(localStorage.getItem(%s)), {base: 'older'})))" % (dk, dk))
+        d.pwin(".close()")
+        e.reload()
+        d.presenter()
+        check("a draft older than notes.js is kept", d.notes_text().startswith("PROBE wrong folder."), repr(d.notes_text()[:40]))
+        check("the presenter says it will be merged", "합쳐집니다" in d.status(), d.status())
+        d.fake_folder(on_disk)
+        e.ev("__dir.e.notes_backup=__mkdir();for(var i=0;i<25;i++)__dir.e.notes_backup.e['notes_2000-'+(100+i)+'.js']={text:'x'}")
+        d.save()
+        check("the old draft is merged into the file", d.disk()["notes"].get(mine) == ["PROBE wrong folder."], d.disk()["notes"].get(mine))
+        check("at most 20 backups are kept", d.backups() == 20, d.backups())
+        check("the newest backup is among them", e.ev("Object.keys(__dir.e.notes_backup.e).some(function(k){return k.indexOf('notes_20')==0&&k.indexOf('notes_2000')<0})"))
 
         if a.other:
             o = Deck(e, find_html(a.other))

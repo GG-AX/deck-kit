@@ -1,7 +1,7 @@
-/* deck-kit engine v1.6 (2026-11-03) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
+/* deck-kit engine v1.7 (2026-11-06) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
 (function () {
   "use strict";
-  var VERSION = "1.0";
+  var VERSION = "1.7";
   var D = window.DECK_DATA || { notes: {}, bestsellers: {}, portfolio: {} };
   var NORM = window.NORM || {};      // original image -> normalized (same-size figure, unified background)
   var CUT = window.CUT || {};        // original image -> [transparent cut-out, w, h]
@@ -498,91 +498,162 @@
 
   /* ---------- presenter notes: editable in the presenter window, saved back into assets/notes.js ----------
      notes.js travels with the presentation folder, so re-sharing the folder shares the edited script.
-     Unsaved edits are kept in localStorage (only on top of the notes.js they were made on).
+     Unsaved edits are kept in localStorage — only the slides edited here, so they never undo changes made elsewhere.
      Browsers share storage between all local files, so every key carries this copy's folder:
      two decks, or two copies of one deck, never see each other's drafts, files or presenter window. */
   var DECK_DIR = decodeURIComponent(location.pathname).replace(/^\/([A-Za-z]:)/, "$1").replace(/\//g, "\\").replace(/\\[^\\]*$/, "");
   var KEY = "deck:" + DECK_DIR.toLowerCase();
   window.DECK_ENGINE = { version: VERSION, key: KEY };   // read by the kit's tools
   var NB = window.DECK_NOTES || { saved: "", notes: D.notes || {} };
-  var NOTES = NB.notes, DRAFT = KEY + "|notes-draft", dirty = false, presSrc = null;
+  var NOTES = {}, EDITED = {}, DRAFT = KEY + "|notes-draft", dirty = false, draftStale = false, presSrc = null;
+  for (var nk in NB.notes) NOTES[nk] = NB.notes[nk];
   try {
     var draft = JSON.parse(localStorage.getItem(DRAFT) || "null");
-    if (draft && draft.base === NB.saved && draft.notes) { NOTES = draft.notes; dirty = true; }
+    if (draft && draft.notes && !draft.edited && draft.base === NB.saved)   // drafts from engine 1.6 kept every slide
+      for (var dk in draft.notes) if (JSON.stringify(draft.notes[dk]) !== JSON.stringify(NB.notes[dk] || [])) EDITED[dk] = draft.notes[dk];
+    if (draft && draft.edited) { EDITED = draft.edited; draftStale = draft.base !== NB.saved; }   // notes.js changed since: merged on save
+    for (var ek in EDITED) { NOTES[ek] = EDITED[ek]; dirty = true; }
   } catch (e) {}
   function setNotes(src, text) {
-    NOTES[src] = text.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
+    NOTES[src] = EDITED[src] = text.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
     dirty = true;
-    try { localStorage.setItem(DRAFT, JSON.stringify({ base: NB.saved, notes: NOTES })); } catch (e) {}
+    try { localStorage.setItem(DRAFT, JSON.stringify({ base: NB.saved, edited: EDITED })); } catch (e) {}
     presStatus();
   }
-  /* Saving, in order of preference:
-     1) Edge/Chrome file access: notes.js is chosen once per PC; the choice is remembered (IndexedDB)
-     2) other browsers: download notes.js to replace by hand */
+  function bySlide(o) {   // slide order; entries of slides taken out of the deck are kept at the end
+    var r = {};
+    slides.forEach(function (s) { var k = s.getAttribute("data-src"); if (o[k]) r[k] = o[k]; });
+    for (var k in o) if (!(k in r)) r[k] = o[k];
+    return r;
+  }
+  function isSlide(k) { return slides.some(function (s) { return s.getAttribute("data-src") === k; }); }
+  function saveNotes(win) {
+    saveStore(win, {
+      file: "notes.js", global: "DECK_NOTES", what: "스크립트",
+      merge: function (disk) {   // the file as it is now + only the slides edited here
+        var n = {}, k;
+        for (k in (disk && disk.notes) || {}) n[k] = disk.notes[k];
+        for (k in EDITED) { if (EDITED[k].length) n[k] = EDITED[k]; else delete n[k]; }
+        return { notes: bySlide(n) };
+      },
+      all: function () { return { notes: bySlide(NOTES) }; },
+      foreign: function (disk) { var ks = Object.keys(disk.notes || {}); return ks.length && !ks.some(isSlide); },
+      saved: function (data) {
+        NB = data; NOTES = {}; EDITED = {}; dirty = false; draftStale = false;
+        for (var k in data.notes) NOTES[k] = data.notes[k];
+        try { localStorage.removeItem(DRAFT); } catch (e) {}
+        presSrc = null; updatePresenter();   // shows what other edits brought in
+      },
+      status: presStatus
+    });
+  }
+
+  /* Saving (notes.js now, review.js too), in order of preference:
+     1) Edge/Chrome file access: the presentation's assets folder is chosen once per copy and remembered (IndexedDB).
+        Before writing, the file is read again and only this window's edits are put in (st.merge), so edits made
+        elsewhere since the deck was opened (the agent, another window, OneDrive) are kept; the old file goes to
+        assets/<name>_backup/ (last 20).
+     2) other browsers: download the file to replace by hand */
   function idb(mode, fn, win) {
     return new Promise(function (ok, no) {
       var q = (win || window).indexedDB.open(KEY, 1);
       q.onupgradeneeded = function () { q.result.createObjectStore("kv"); };
       q.onerror = function () { no(q.error); };
       q.onsuccess = function () {
-        var tx = q.result.transaction("kv", mode), r = fn(tx.objectStore("kv"));
+        var tx = q.result.transaction("kv", mode), r;
+        try { r = fn(tx.objectStore("kv")); } catch (e) { no(e); return; }
         tx.oncomplete = function () { ok(r && r.result); };
         tx.onerror = function () { no(tx.error); };
       };
     });
   }
-  // read through the presenter window: the click that asks for write permission happened there, and Chrome only
-  // grants it (after a browser restart) to a handle that lives in the window holding that click
-  function rememberedHandle(win) {
-    return idb("readonly", function (st) { return st.get("notesHandle"); }, win).catch(function () { return null; });
+  var BACKUPS = 20;
+  function showDir() { return /^[A-Za-z]:/.test(DECK_DIR) ? DECK_DIR + "\\assets" : DECK_DIR.replace(/\\/g, "/") + "/assets"; }   // Mac paths keep their slashes
+  function jsText(global, data) { return "window." + global + " = " + JSON.stringify(data, null, 1) + ";\n"; }
+  function readJs(dir, name) {   // → [text, data] or ["", null] when the file is not there
+    return dir.getFileHandle(name).then(function (h) { return h.getFile(); }).then(function (f) { return f.text(); }).then(function (t) {
+      try { return [t, JSON.parse(t.slice(t.indexOf("{"), t.lastIndexOf("}") + 1))]; }
+      catch (e) { throw new Error(name + "를 읽을 수 없습니다(손으로 고치다 깨졌을 수 있음)"); }
+    }, function (e) { if (e.name === "NotFoundError") return ["", null]; throw e; });
   }
-  function saveNotes(win) {
-    var stamp = new Date().toISOString(), ordered = {};
-    slides.forEach(function (s) { var k = s.getAttribute("data-src"); if (NOTES[k]) ordered[k] = NOTES[k]; });   // slide order
-    for (var k in NOTES) if (!(k in ordered)) ordered[k] = NOTES[k];   // notes of slides taken out of the deck are kept
-    var text = "window.DECK_NOTES = " + JSON.stringify({ saved: stamp, notes: ordered }, null, 1) + ";\n";
-    function done(msg) { NB.saved = stamp; dirty = false; try { localStorage.removeItem(DRAFT); } catch (e) {} presStatus(msg, true); }
-    function fail(e) { if (e && e.name !== "AbortError" && e.message !== "cancel") presStatus("Not saved — " + e.message); }
-    presStatus("Saving…");
-    if (!win.showSaveFilePicker) {
-      var a = win.document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([text], { type: "text/javascript" }));
-      a.download = "notes.js";
-      win.document.body.appendChild(a); a.click(); a.remove();
-      done("Downloaded notes.js → replace assets/notes.js in the presentation folder with it");
-      return;
-    }
-    rememberedHandle(win).then(function (h) {
-      if (!h) return null;
-      // a remembered file is only reused if it is still the notes.js this deck was loaded from (folder not moved/copied)
-      return h.requestPermission({ mode: "readwrite" }).then(function (p) {
-        if (p !== "granted") return null;
-        return h.getFile().then(function (f) { return f.text(); }).then(function (t) {
-          var m = /"saved":\s*"([^"]*)"/.exec(t);
-          return m && m[1] === NB.saved ? h : null;
-        });
-      }).catch(function () { return null; });
+  function writeFile(dir, name, text) {
+    return dir.getFileHandle(name, { create: true }).then(function (h) { return h.createWritable(); })
+      .then(function (w) { return w.write(text).then(function () { return w.close(); }); });
+  }
+  function backup(dir, name, text) {   // keeps the file being replaced; the oldest beyond BACKUPS are removed
+    var d = new Date(), p = function (n) { return String(n).padStart(2, "0"); };
+    var stem = name.replace(/\.js$/, ""), file = stem + "_" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()) + ".js";
+    return dir.getDirectoryHandle(stem + "_backup", { create: true }).then(function (b) {
+      return writeFile(b, file, text).then(function () {
+        var names = [], it = b.keys();
+        function next() {
+          return it.next().then(function (r) {
+            if (!r.done) { if (/\.js$/.test(r.value)) names.push(r.value); return next(); }
+            names.sort();
+            return Promise.all(names.slice(0, Math.max(0, names.length - BACKUPS)).map(function (n) { return b.removeEntry(n); }));
+          });
+        }
+        return next();
+      });
+    });
+  }
+  // the folder is asked for and remembered through the window holding the click: Chrome only grants write
+  // permission (after a browser restart) to a handle that lives in the window holding that click
+  function assetsDir(win, st) {
+    return idb("readonly", function (s) { return s.get("assetsDir"); }, win).catch(function () { return null; }).then(function (h) {
+      return h ? h.requestPermission({ mode: "readwrite" }).then(function (p) { return p === "granted" ? h : null; }, function () { return null; }) : null;
     }).then(function (h) {
       if (h) return h;
-      presStatus("Choose " + (/^[A-Za-z]:/.test(DECK_DIR) ? DECK_DIR + "\\assets\\notes.js" : DECK_DIR.replace(/\\/g, "/") + "/assets/notes.js") + " (only once per copy)");   // Mac paths keep their slashes
-      return win.showSaveFilePicker({ suggestedName: "notes.js", types: [{ description: "Presenter notes", accept: { "text/javascript": [".js"] } }] }).then(function (h2) {
-        if (h2.name !== "notes.js" && !win.confirm('"' + h2.name + '" is not notes.js — the deck only reads assets/notes.js. Save anyway?')) throw new Error("cancel");
-        return h2;
+      st.status("이 덱의 assets 폴더를 골라 주세요: " + showDir() + " (복사본마다 처음 한 번)");
+      return win.showDirectoryPicker({ id: "deckkit-assets", mode: "readwrite" }).then(function (d) {
+        return d.getFileHandle("engine.js").then(function () {
+          idb("readwrite", function (s) { return s.put(d, "assetsDir"); }, win).catch(function () {});
+          return d;
+        }, function () { throw new Error("고른 폴더에 engine.js가 없습니다 — 덱 폴더 안의 assets 폴더를 골라 주세요"); });
       });
-    }).then(function (h) {
-      return h.createWritable().then(function (w) { return w.write(text).then(function () { return w.close(); }); }).then(function () {
-        idb("readwrite", function (st) { return st.put(h, "notesHandle"); }, win).catch(function () {});
-        done("✓ Saved");
+    });
+  }
+  function saveStore(win, st) {
+    var stamp = new Date().toISOString();
+    function fail(e) { if (e && e.name !== "AbortError" && e.message !== "cancel") st.status("저장하지 못했습니다 — " + e.message); }
+    st.status("저장 중…");
+    if (!win.showDirectoryPicker) {
+      var data = st.all(); data.saved = stamp; data.deck = DECK_DIR;
+      var a = win.document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([jsText(st.global, data)], { type: "text/javascript" }));
+      a.download = st.file;
+      win.document.body.appendChild(a); a.click(); a.remove();
+      st.saved(data);
+      st.status(st.file + "를 내려받았습니다 → 덱 폴더의 assets/" + st.file + "를 이 파일로 바꿔 넣어야 반영됩니다", true);
+      return;
+    }
+    assetsDir(win, st).then(function (dir) {
+      return readJs(dir, st.file).then(function (cur) {
+        var disk = cur[1];
+        // a file saved by another deck: its folder is written in it (older files: none of its slides is in this deck)
+        if (disk && (disk.deck ? disk.deck.toLowerCase() !== DECK_DIR.toLowerCase() : st.foreign(disk)) &&
+            !win.confirm("이 assets 폴더의 " + st.what + "는 다른 위치의 덱에서 저장한 것입니다:\n" + (disk.deck || "(위치 기록 없음)") +
+              "\n\n이 덱을 옮기거나 복사했다면 '확인', 다른 덱의 폴더를 잘못 골랐다면 '취소'를 누르세요.")) {
+          idb("readwrite", function (s) { return s.delete("assetsDir"); }, win).catch(function () {});
+          throw new Error("cancel");
+        }
+        var data = st.merge(disk); data.saved = stamp; data.deck = DECK_DIR;
+        var text = jsText(st.global, data);
+        return (cur[0] ? backup(dir, st.file, cur[0]) : Promise.resolve()).then(function () { return writeFile(dir, st.file, text); }).then(function () {
+          st.saved(data);
+          st.status("✓ 저장했습니다", true);
+        });
       });
-    }).catch(fail);
+    }).catch(function (e) { st.status(""); fail(e); });
   }
   function presStatus(msg, ok) {
     if (!presenter || presenter.closed) return;
     var st = presenter.document.getElementById("st");
     if (msg) { st.textContent = msg; st.className = ok ? "ok" : ""; return; }
+    var n = Object.keys(EDITED).length;
     st.className = dirty ? "dirty" : "";
-    st.textContent = dirty ? "Unsaved changes — press Save notes" :
-      NB.saved ? "Saved " + new Date(NB.saved).toLocaleString() : "Not saved yet";
+    st.textContent = dirty ? "저장 안 한 수정 " + n + "장" + (draftStale ? " — notes.js가 그 뒤 바뀌었습니다. 저장하면 최신 파일에 합쳐집니다" : " — 스크립트 저장을 누르세요") :
+      NB.saved ? "저장됨 " + new Date(NB.saved).toLocaleString() : "아직 저장 안 함";
   }
 
   /* ---------- presenter window (notes only on the presenter's screen) ---------- */
@@ -599,22 +670,22 @@
   function openPresenter() {
     if (presenter && !presenter.closed) { presenter.focus(); return; }
     presenter = window.open("", KEY + "|presenter", "width=1100,height=720");
-    if (!presenter) { alert("Pop-up blocked: allow pop-ups to open the presenter window."); return; }
+    if (!presenter) { alert("팝업이 막혀 있습니다 — 이 페이지의 팝업을 허용해야 발표자 창이 열립니다."); return; }
     var d;
     try { d = presenter.document; } catch (e) {
       // a presenter window left from before this page was reloaded: it can no longer be reached
       presenter.close(); presenter = null;
-      alert("The old presenter window was closed. Press P again.");
+      alert("예전 발표자 창을 닫았습니다. P를 다시 눌러 주세요.");
       return;
     }
     d.open();
     d.write('<!doctype html><html><head><meta charset="utf-8"><title>Presenter — ' + esc(document.title) + "</title><style>" + PRES_CSS +
       '</style></head><body><header><b id="n"></b><span id="ti"></span><span class="t" id="tm">00:00</span></header>' +
-      '<main><textarea class="notes" id="no" spellcheck="true" placeholder="No notes for this slide — type here to add. Blank line = new paragraph."></textarea>' +
+      '<main><textarea class="notes" id="no" spellcheck="true" placeholder="이 장에는 스크립트가 없습니다 — 여기에 쓰면 됩니다. 빈 줄 = 새 문단"></textarea>' +
       '<div class="side"><div class="box"><small>NOW</small><div id="cur"></div></div>' +
       '<div class="box"><small>NEXT</small><div id="nx"></div></div><div class="box"><small>CHAPTER</small><div id="ch"></div></div></div></main>' +
-      '<footer><button id="pv">◀ Prev</button><button id="nt">Next ▶</button><button id="rs">Reset timer</button>' +
-      '<button id="sv" title="Ctrl+S">Save notes</button><span id="st"></span></footer></body></html>');
+      '<footer><button id="pv">◀ 이전</button><button id="nt">다음 ▶</button><button id="rs">타이머 처음부터</button>' +
+      '<button id="sv" title="Ctrl+S">스크립트 저장</button><span id="st"></span></footer></body></html>');
     d.close();
     presSrc = null;
     d.getElementById("pv").onclick = function () { step(-1); };
@@ -642,7 +713,7 @@
     if (src !== presSrc) {  // only on slide change, so the caret is not reset while typing
       presSrc = src;
       var ta = d.getElementById("no");
-      ta.value = (NOTES[src] || []).join("\n\n");
+      ta.value = (NOTES[src] || []).join("\n\n");   // presSrc = null makes it reload (after a save brought in other edits)
       ta.scrollTop = 0;
     }
   }

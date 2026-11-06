@@ -4,7 +4,7 @@ usage: python used_assets.py [deck] [--move]
 used = files the browser loads while every slide is shown (headless Chromium)
      + files named in the deck: HTML src/href/poster/data-report, every "assets/…" path in the deck's
        data scripts (data.js, motion.js, …), url() in engine.css/deck.css
-     + always: the engine files, notes.js, every font and its licence
+     + always: the engine files, notes.js, review.js and their backups, every font and its licence
      + files a versions\\ backup uses (backups load pictures from the live presentation folder)
 Prints a summary, files that are referenced but missing, and whether card clips play.
 --move puts the unused files in <deck>\\work\\unused_assets\\<same path> (nothing is deleted).
@@ -19,7 +19,8 @@ from pathlib import Path
 import deckutil
 from deckutil import Chromium, count_slides, deck_root, find_html
 
-ALWAYS = {"assets/engine.js", "assets/engine.css", "assets/deck.css", "assets/notes.js"}
+ALWAYS = {"assets/engine.js", "assets/engine.css", "assets/deck.css", "assets/notes.js", "assets/review.js"}
+SAVED = ("assets/notes_backup/", "assets/review_backup/")   # earlier saves of the script / review notes, kept by the engine
 
 
 def dynamic(html, pres):
@@ -99,7 +100,7 @@ def main():
     print("kept for versions backups:", len(backup - keep))
     keep |= backup
     all_files = [p.relative_to(pres).as_posix() for p in (pres / "assets").rglob("*") if p.is_file()]
-    unused = sorted(f for f in all_files if f not in keep)
+    unused = sorted(f for f in all_files if f not in keep and not f.startswith(SAVED))
     size = sum((pres / f).stat().st_size for f in unused)
     print("assets files: %d | used: %d | unused: %d (%.1f MB)" % (len(all_files), len(all_files) - len(unused), len(unused), size / 1e6))
     for f in unused:
