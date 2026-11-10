@@ -54,7 +54,8 @@ def main():
             t.write_text(s, encoding="utf-8")
         for dp, _, _ in sorted(os.walk(pres / "assets"), key=lambda x: -len(x[0])):
             if not os.listdir(dp):
-                subprocess.run(["attrib", "-r", dp], capture_output=True)   # OneDrive folders can be read-only
+                if os.name == "nt":   # OneDrive folders can be read-only; attrib exists only on Windows
+                    subprocess.run(["attrib", "-r", dp], capture_output=True)
                 os.rmdir(dp)
     print("removed copies:", removed)
 

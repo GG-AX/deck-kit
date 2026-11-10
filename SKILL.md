@@ -186,6 +186,8 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 
 ## 도구 — `python KIT/tools/<도구>` (인자로 덱 폴더를 주거나, 덱 폴더에서 실행)
 
+Mac에서는 이 문서의 `python`을 모두 `python3`로 쓴다(Homebrew Python에는 `python` 명령이 없다).
+
 | 도구 | 쓰임 |
 | --- | --- |
 | `shots.py [덱] [--reports] [--size 1920,1080] [--jobs N]` | 전 슬라이드 캡처 → `work/shots/`, 덱 저장 시각과 콘솔 오류 출력. 실패한 장은 따로 다시 찍고, 그래도 안 되면 목록을 낸다. `--reports`: 보고서 미리보기를 `assets/img/reports/`에 만든다 |

@@ -16,8 +16,9 @@ disable-model-invocation: true
 3. 결과를 한국어로 알린다: 이전 버전 → 새 버전(같으면 "이미 최신"). 새 버전이면 키트의 `README.md` 키트 버전 기록에서 그 사이에 바뀐 줄을 보여 준다.
 4. 바뀌었으면 "`/reload-plugins`를 입력하거나 Claude Code를 다시 시작해야 적용된다"고 알린다.
 5. 환경 점검·설치 — 도구(캡처·점검)에 필요한 프로그램을 갖춘다. 먼저 모두 점검하고, 빠진 것이 있으면 무엇을 설치하는지 한 줄로 말한 뒤 사용자의 "네"를 한 번 받고 빠진 것만 설치한다. 다 있으면 묻지 않고 바로 확인(④)만 한다(10초 안에 끝나야 한다).
-   ① `python --version`이 3.10 이상인가. 없으면 Windows `winget install Python.Python.3.12`, Mac `brew install python`(brew가 없으면 `xcode-select --install`을 안내). 설치 뒤에는 새 터미널에서 `python`이 잡히는지 본다.
-   ② `python -c "import PIL, websocket, playwright, olefile"`가 되는가. 안 되면 `python -m pip install --user pillow websocket-client playwright olefile`.
+   **Mac은 아래의 `python`을 모두 `python3`로 쓴다**(Homebrew Python에는 `python` 명령이 없다).
+   ① `python --version`이 3.10 이상인가. 없으면 Windows `winget install Python.Python.3.12`, Mac `brew install python`. Mac에 기본으로 있는 `/usr/bin/python3`는 3.9라 안 된다. Mac에 brew가 없으면 설치하지 말고 사용자에게 "터미널 앱을 열어 https://brew.sh 첫 화면의 명령 한 줄을 붙여 넣고 Enter, Mac 비밀번호를 넣어 달라"고 안내하고, 끝나면 다시 `/deck-kit:update`를 하라고 한다. 설치 뒤에는 새 터미널에서 `python`(Mac `python3`)이 3.10 이상으로 잡히는지 본다.
+   ② `python -c "import PIL, websocket, playwright, olefile"`가 되는가. 안 되면 Windows `python -m pip install --user pillow websocket-client playwright olefile`, Mac `python3 -m pip install --user --break-system-packages pillow websocket-client playwright olefile`(Homebrew Python은 이 옵션 없이는 설치를 막는다. `--user`라 사용자 폴더에만 들어간다. 가상환경 안의 python이면 `--user --break-system-packages` 없이).
    ③ ②를 설치했거나 ④가 "브라우저 없음"으로 실패하면 `python -m playwright install chromium`(약 150MB, 한 번).
    ④ 확인: `python ${CLAUDE_SKILL_DIR}/../../tools/shots.py ${CLAUDE_SKILL_DIR}/../../template --to 1 --out <임시 폴더>`가 PNG 1장을 만들면 "준비 끝". 아니면 어느 단계에서 막혔는지 오류와 함께 알린다.
 
