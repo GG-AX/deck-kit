@@ -1,7 +1,7 @@
-/* deck-kit engine v1.7 (2026-11-06) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
+/* deck-kit engine v1.8 (2026-11-10) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
 (function () {
   "use strict";
-  var VERSION = "1.7";
+  var VERSION = "1.8";
   var D = window.DECK_DATA || { notes: {}, bestsellers: {}, portfolio: {} };
   var NORM = window.NORM || {};      // original image -> normalized (same-size figure, unified background)
   var CUT = window.CUT || {};        // original image -> [transparent cut-out, w, h]
@@ -586,7 +586,8 @@
     });
   }
   var BACKUPS = 20;
-  function showDir() { return /^[A-Za-z]:/.test(DECK_DIR) ? DECK_DIR + "\\assets" : DECK_DIR.replace(/\\/g, "/") + "/assets"; }   // Mac paths keep their slashes
+  var ON_WIN = /^[A-Za-z]:/.test(DECK_DIR);
+  function showDir() { return ON_WIN ? DECK_DIR + "\\assets" : DECK_DIR.replace(/\\/g, "/") + "/assets"; }   // Mac paths keep their slashes
   function jsText(global, data) { return "window." + global + " = " + JSON.stringify(data, null, 1) + ";\n"; }
   function readJs(dir, name) {   // → [text, data] or ["", null] when the file is not there
     return dir.getFileHandle(name).then(function (h) { return h.getFile(); }).then(function (f) { return f.text(); }).then(function (t) {
@@ -630,7 +631,8 @@
       if (quiet) throw new Error("ask");
       // a page cannot open the dialog at a path, so the path goes to the clipboard: paste it into the dialog
       try { win.navigator.clipboard.writeText(showDir()).catch(function () {}); } catch (e) {}
-      st.status("이 덱의 assets 폴더를 골라 주세요(덱마다 처음 한 번) — 경로를 복사해 두었습니다: 창의 '폴더' 칸에 Ctrl+V → Enter → [폴더 선택] · " + showDir());
+      st.status("이 덱의 assets 폴더를 골라 주세요(덱마다 처음 한 번) — 경로를 복사해 두었습니다: " +
+        (ON_WIN ? "창의 '폴더' 칸에 Ctrl+V → Enter → [폴더 선택]" : "창에서 ⌘⇧G → ⌘V → Enter → [선택]") + " · " + showDir());
       return win.showDirectoryPicker({ id: "deckkit-assets", mode: "readwrite" }).then(function (d) {
         return d.getFileHandle("engine.js").then(function () {
           idb("readwrite", function (s) { return s.put(d, "assetsDir"); }, win).catch(function () {});

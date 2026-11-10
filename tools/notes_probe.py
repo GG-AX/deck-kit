@@ -145,7 +145,7 @@ def main():
         d.pwin(".eval(\"Object.defineProperty(navigator,'clipboard',{value:{writeText:function(t){window.__copied=t;return Promise.resolve()}}})\")")
         check("save reports success", "저장했습니다" in d.save(), d.status())
         copied = d.pwin(".__copied") or ""
-        check("the assets path is copied for the folder dialog", copied.lower() == d.key[len("deck:"):] + "\\assets", copied)
+        check("the assets path is copied for the folder dialog", copied.lower().replace("\\", "/") == d.key[len("deck:"):].replace("\\", "/") + "/assets", copied)   # Windows C:\…\assets, Mac /…/assets
         n = d.disk()["notes"]
         check("the edit is saved", n.get(mine, [""])[0] == "PROBE line one.", n.get(mine))
         check("an edit made elsewhere since opening is kept", n.get(other) == ["OTHER EDIT made elsewhere."], n.get(other))
