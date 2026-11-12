@@ -2,7 +2,18 @@
 
 > deck-kit 양식으로 만든 덱 작업 공간이다.
 > (deck-kit 안 `template\`에 있는 이 파일은 양식일 뿐이다 — 복사된 덱 폴더에서만 적용된다.)
-> deck-kit(작업 순서·부품·도구 = `SKILL.md`, 디자인 원칙 = `DESIGN.md`)은 Claude Code 플러그인이다. `/deck-kit:deck-kit`로 불러오면 키트 경로가 나온다.
+> deck-kit(작업 순서·규칙 = `SKILL.md`, 단계별 설명 = `steps/`, 디자인 원칙 = `DESIGN.md`)은 Claude Code 플러그인이다. `/deck-kit:deck-kit`로 불러오면 키트 경로(KIT)가 나온다.
+
+## 단계 → 읽을 파일 (그 단계를 시작하기 전에 읽는다 — 전에 읽었어도 다시)
+
+| 단계 | KIT 안 파일 |
+| --- | --- |
+| 1·2 덱 폴더 만들기 · 구성안 | `steps/start.md` |
+| 3 슬라이드 쓰기 · 부품 · 차트 | `steps/slides.md` |
+| 4·5 자체 검수 · 1차 검수 넘기기 | `steps/check.md` |
+| 6 피드백 반영 · 예전 키트로 만든 덱 | `steps/feedback.md` |
+| 카드 영상(상품 카드가 있을 때만) | `steps/card-video.md` |
+| 도구 표 | `steps/tools.md` |
 
 ## 세션 규칙 (필수)
 

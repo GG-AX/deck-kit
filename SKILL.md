@@ -16,7 +16,8 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 | `template/presentation/deck.html` | **견본 덱 16장** = 부품 사전(내용은 가짜). 견본 장의 `data-guide`는 화면 위쪽에 부품 설명을 띄운다(H로 숨김) — 덱에 가져올 때 `data-sample`과 함께 지운다. 정확한 마크업은 여기서 복사한다 |
 | `sample-slides.jpg` | 견본 16장의 모습(번호 = deck.html 순서) |
 | `DESIGN.md` | 디자인 원칙(짧다 — 작업 전에 읽는다) |
-| `tools/` | 캡처·PPT 추출·이미지 손질 등 도구(아래 "도구") |
+| `tools/` | 캡처·PPT 추출·이미지 손질 등 도구(표는 `steps/tools.md`) |
+| `steps/` | 단계별 작업 설명(아래 "단계 파일") |
 
 ## 작업 순서
 
@@ -26,54 +27,18 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 - 묻는 것은 진행이 불가능할 때뿐이다: 원본이 없다, 열리지 않는다, PPT가 PowerPoint에 열려 있어 잠겼다.
 - 기본값: 문구·숫자·발표자 노트는 원본 그대로 · 언어는 원본의 언어 · 레이아웃은 보기 좋게 다시 짜도 된다 · `DESIGN.md` 원칙 전부 적용 · 발표 날짜·장소·청중은 원본에 있는 것만 쓰고, 없으면 비워 둔다.
 
-1. **덱 폴더 만들기** — `KIT/template/`의 내용을 덱 폴더로 통째로 복사한다. Windows에서는 그다음 읽기 전용 속성을 푼다: `attrib -r "<덱 폴더>\*" /s /d` (Mac은 필요 없음. OneDrive에서는 복사본이 읽기 전용이 되어 견본 삭제가 `Access denied`로 실패한다).
-   - 사용자가 연 작업 폴더가 비어 있거나 원본 파일만 있으면 그 폴더가 덱 폴더다(원본은 `source/`로 옮긴다). 다른 작업이 들어 있으면 그 안에 원본 파일 이름으로 하위 폴더를 만든다.
-   - 빈 폴더 `source ai work docs docs/feedback tools versions`가 없으면 만든다(압축·git에서 빠진다).
-   - `CLAUDE.md`·`session.md`·`FEEDBACK.md`의 `<덱 이름>`과 "이 덱" 칸, `session.md`의 키트 버전(KIT `README.md` 버전 기록 맨 아래)을 채운다. 받은 원본은 `source/`에 둔다(고치지 않음).
-   - 원본이 PPT면: `python KIT/tools/extract.py <파일.pptx>` → 글·노트·그림·내장 보고서가 `work/manifest.json`과 `presentation/`에 나온다. PPT에서 잘라 둔 그림은 잘린 대로 저장된다. 끝에 "SKIPPED"로 나온 그림(깨진 그림·EMF)은 "원본 문제"에 적는다.
-   - 원본이 영상·HTML 툴이면: 영상은 `presentation/assets/video/`(+ 포스터 jpg), HTML 보고서는 `presentation/reports/`에 두고 보고서 카드로 연다. 미리보기는 `shots.py --reports`.
-2. **구성안** — 슬라이드 목록(순서, id, 제목, 챕터, 레이아웃, 쓸 부품, 이미지)을 `session.md`에 적고 그대로 진행한다(확인받지 않는다).
-3. **슬라이드 쓰기** — `presentation/deck.html`(이름은 바꿔도 된다. 폴더 안 .html은 하나만).
-   - **견본은 부품 사전이다.** 부품(표·차트·카드·사진 벽…)의 마크업만 가져다 쓰고, 슬라이드 배치는 따라 하지 않는다. 레이아웃·위치·크기·이미지는 원본 내용을 보고 덱마다 새로 짠다. 원본 PPT의 배치도 따를 필요 없다(`DESIGN.md`). 견본 장을 그대로 고쳐 쓸 때는 `data-sample`을 지운다. 덱 전용 스타일은 `assets/deck.css`.
-   - **다른 덱 폴더는 보지도 복사하지도 않는다**(HTML·CSS·도구·그림 모두). 부품은 키트에서만 가져온다. 키트에 없는 부품이 필요하면 `deck.css`에 만들고 `session.md`의 "키트에 없던 것"에 적는다(키트 피드백이 된다). 예외: 사용자가 "○○ 덱의 그 장을 그대로"라고 지정한 경우만.
-   - 안 쓰는 견본 슬라이드와 예시 이미지(`assets/img/` 안 견본용 파일)·예시 데이터는 지운다.
-   - `<title>`, `<html lang>`(한글 덱이면 `ko`), `<body data-logo="…" data-topline="…">`(상단 바의 로고와 문구)를 정한다.
-   - `assets/notes.js`에 슬라이드마다 발표자 스크립트를 쓴다(원본 노트가 있으면 그대로). 키는 슬라이드 id.
-   - `assets/data.js`는 상품 카드·콜라주를 쓸 때만, `assets/motion.js`는 카드 영상이 있을 때만 남긴다. 안 쓰면 파일과 `<script>` 줄을 지운다.
-   - 원본에 빠진 것·틀린 것(깨진 그림, 맞지 않는 숫자)은 지어내지 않는다. 화면에는 눈에 띄는 자리표시를 두고 `session.md`의 "원본 문제"에 적는다.
-4. **자체 검수** — 사용자에게 넘기기 전에 아래를 **통과할 때까지** 고치고 다시 본다.
-   - 덱을 만드는 스크립트가 있으면 출력을 숨기지 않고 실행해 오류가 없는지 본다(`2>$null` 금지 — 빌드가 실패했는데 옛 덱을 캡처한 적이 있다).
-   - `python KIT/tools/lint.py <덱 폴더>` — ERR이 없어야 한다. WARN은 이유가 있으면 둔다.
-   - `python KIT/tools/shots.py <덱 폴더>` → `work/shots/sNN.png`를 **전부 직접 열어 본다**. 첫 줄의 저장 시각이 방금 고친 시각인지 확인한다. 보고서 카드가 있으면 `--reports`도.
-   - 슬라이드마다 볼 것
-     - 글자 넘침·잘림·겹침, 콘솔 오류, 남은 견본 내용
-     - 빈 공간: 칸 아래쪽이 비었거나 패널이 내용보다 훨씬 크지 않은가(`DESIGN.md` 여백·위계)
-     - 사진: 중요한 부분이 잘리지 않았나, 배경이 다른 상품 사진을 밝기만 바꾸지 않았나(배경 제거)
-     - 같은 종류 그림(사진·로고·국기)의 보이는 크기, 인물 사진의 높이·머리선·발선
-     - 12px 미만 글자(엔진 부품의 출처·태그·라벨 같은 보조 글자는 제외 — DESIGN 여백·위계)
-     - 챕터 커버·마무리 장이 `DESIGN.md` 슬라이드 구성대로인가(마무리 = 문장 하나 + 로고)
-   - 원본과 나란히 볼 것: 숫자·문구, 정보 요소(아이콘·표시 기호), 원본에서 가려진 그림을 쓰지 않았나, 그림 사이 연결선·확대 표시를 살렸나
-   - 숫자 검산: 비율의 합(100%), 합계 = 항목의 합, 금액 = 단가 × 수량. 원본이 틀렸으면 고치지 말고 "원본 문제"에 적는다
-   - 덱 전체로 볼 것: 캡처를 한 장에 모아(`sNN.png` 여러 장을 격자로) 같은 종류 슬라이드끼리 제목 형식·칸 크기·핵심 문구 띠가 같은지
-   - 마지막으로 `DESIGN.md`를 한 줄씩 다시 읽고 어긋난 곳이 없는지
-   - 슬라이드가 많으면 서브에이전트에게 슬라이드를 나눠 맡겨 함께 본다(각자 캡처와 원본을 대조해 문제 목록만 돌려받는다).
-5. **1차 검수 넘기기** — 넘기기 전에 `python KIT/tools/compress.py <덱 폴더>`로 영상·사진·보고서 속 사진을 줄이고(이름·형식은 그대로, 바꾼 파일의 원본은 `work/compress_originals/`), 100MB 경고가 남으면 큰 파일을 사용자에게 알린다. 그다음 `python KIT/tools/pdf.py <덱 폴더>`로 PDF를 만든다(`<덱 폴더>/<폴더 이름>.pdf`, 화면 가득 영상 장은 빠지고 카드 영상은 사진, 더 뺄 장은 `--skip 2,7`). 사용자에게 한 번에 알린다. `session.md`도 이 기준으로 고친다.
-   - 덱 위치와 여는 법(`presentation/` 안 .html을 Edge나 Chrome으로 더블클릭), PDF 위치
-   - 슬라이드 구성(한 줄씩)
-   - 가정 목록 — 묻지 않고 정한 것
-   - 원본 문제 목록 — 화면에 자리표시로 둔 것
-   - 자체 검수에서 고친 것과 남은 것
-   - 검수하는 법: 덱에서 **R** (처음 한 번 `assets` 폴더 고르기) → 고칠 곳을 클릭해 메모(자동 저장) → "검수 의견 반영해줘". PDF에서 뺄 장은 그 장에서 "이 장 PDF에서 빼기". 채팅으로 말해도 된다
-6. **피드백 반영** — 검수 의견을 받을 때마다 이 순서로 한다. 덱 안 검수 메모(R)가 있으면 먼저 `python KIT/tools/review.py <덱 폴더> --shots work/review_shots`로 읽는다 — 핀마다 메모와 누른 곳(`at`: 그 자리의 글자·그림 파일)이 표로 나오고, 캡처에 핀 번호가 찍혀 있다. 메모가 가리키는 곳이 애매하면 계획표에서 "이렇게 이해했다"고 적고 확인받는다.
-   1. **백업 먼저**: 코드를 하나라도 고치기 **전에** `python KIT/tools/snapshot.py vN_<이름> "한 줄 설명"`(N = 지금 라이브 번호). 고친 뒤에 백업하면 사본이 옛 덱과 어긋난다.
-   2. **수정 계획 보여 주기**: 받은 피드백 원문(메일·메시지, 검수 메모는 `review.py` 표)은 `docs/feedback/`에 날짜 이름으로 저장하고, 피드백을 `FEEDBACK.md`에 적고, 슬라이드별 수정 계획표(슬라이드 · 피드백 · 고칠 방법)를 사용자에게 보여 주고 확인받는다.
-   3. 반영 → 검수 메모는 핀마다 `review.py --resolve N "한 줄 답"`(무엇을 어떻게 고쳤는지 — 사용자가 덱의 "지난 의견 보기"에서 본다. 반영하지 않은 핀은 그대로 두고 이유를 보고) → 4번 자체 검수 → 압축(`compress.py`, 새로 넣은 파일만 바뀜)·PDF 다시 만들기(`pdf.py`, "PDF에서 빼기" 장은 알아서 빠짐) → 고친 것과 남은 것을 보고하고 `FEEDBACK.md` 상태와 `session.md`(백업 번호·슬라이드 수·lint 결과)를 지금 기준으로 고친다.
+## 단계 파일 — 각 단계를 시작하기 전에 그 파일을 읽는다
 
-### 예전 키트로 만든 덱을 이어서 고칠 때
+단계 규칙은 쓰기 직전에 읽도록 `KIT/steps/`에 나눠 두었다. **각 단계를 시작할 때 해당 파일을 읽는다 — 전에 읽었어도 다시**(며칠 걸리는 작업에서는 대화가 요약되며 앞에서 읽은 규칙이 흐려진다). 이 파일(`SKILL.md`)의 규칙·색·글꼴은 모든 단계에 걸린다.
 
-- 엔진은 덱을 만들 때의 버전 그대로 둔다(lint가 WARN으로 알린다). 발표가 코앞이면 올리지 않는다.
-- 올릴 때: `snapshot.py`로 백업 → KIT `template/presentation/assets/`의 `engine.js`·`engine.css`를 덱 `assets/`에 덮어쓰고, 덱에 `Start Presentation.bat`·`assets/notes_server.ps1`이 있으면 지운다(v1.5부터 안 씀). v1.7 전 덱이면 KIT의 빈 `assets/review.js`를 복사하고 덱 .html의 notes.js 줄 다음에 `<script src="assets/review.js"></script>`를 넣는다(검수 모드) → `shots.py`로 전 장을 찍어 백업 캡처와 비교한다(KIT `README.md` 엔진 버전 기록에서 바뀐 점을 본다).
-- 덱 `CLAUDE.md`나 덱 도구에 `.claude/skills/deck-kit` 같은 옛 KIT 경로가 있으면 지운다. KIT 도구는 늘 이 스킬을 불러온 뒤 KIT 경로로 실행한다.
+| 단계 | 파일 | 읽을 때 |
+| --- | --- | --- |
+| 1·2 덱 폴더 만들기 · 구성안 | `KIT/steps/start.md` | 덱을 새로 시작할 때 |
+| 3 슬라이드 쓰기 · 부품 · 차트 | `KIT/steps/slides.md` | 슬라이드를 쓰기 전(고칠 때도) |
+| 4·5 자체 검수 · 1차 검수 넘기기 | `KIT/steps/check.md` | 다 쓴 뒤, 넘기기 전 |
+| 6 피드백 반영 · 예전 키트로 만든 덱 | `KIT/steps/feedback.md` | 검수 의견을 받을 때마다 |
+| 카드 영상 | `KIT/steps/card-video.md` | 상품 카드(`product`)를 쓸 때만 |
+| 도구 표 | `KIT/steps/tools.md` | 도구 옵션이 필요할 때 |
 
 ## 규칙
 
@@ -94,55 +59,6 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 - **사용자가 요청한 수정은 원칙과 달라도 반영한다** — 원칙을 이유로 보류하지 않는다(수정 요청을 반영하는 것이 목적). 어떻게 할지 애매하면 키트 토큰(색은 `--cat-1…` 등) 중 가장 가까운 것으로 하고, 덱 `FEEDBACK.md` 1장에 이 덱의 예외로 적는다(날짜·이유).
 - **설명할 때는 근거 파일 경로를 먼저 밝힌다**: 문구·스크립트를 어느 파일에서 가져왔는지, 무엇이 어디에 저장되는지, 어느 것이 최신인지.
 
-## 부품 — 견본 덱의 예시 슬라이드
-
-정확한 마크업은 `template/presentation/deck.html`에서 해당 id를 찾아 복사한다. 한 장에 부품 여러 개를 모아 보여 줄 뿐이니, 배치는 따라 하지 않는다. 그림은 `sample-slides.jpg`.
-
-| 견본 id | 부품 | 핵심 |
-| --- | --- | --- |
-| `cover` | 표지 | `.title-wrap`: 로고·회사명·제목·날짜·기밀 고지 + 오른쪽 사진 |
-| `video` | 화면 가득 영상 | `.video-full` > `.vbox`(video + `.play`). ▶ 클릭이나 Enter로 재생 |
-| `chapter` | 챕터 커버 | `.divider`: 큰 번호 + 챕터명 + `.agenda`(지금 챕터만 `.on`) |
-| `chart` | 숫자·차트 | 막대 `data-bars` + 추세 화살표 `svg.trend`(막대와 함께 그려짐)·`.trend-t`, 한 줄 비율 막대 `.cr.h`, 트리맵 `data-treemap` + 아래 `.top5`(로고 순위 줄, `data-logo-area`), 숫자 카드 `.kpi` + 카운트업 `data-count`, 비율 막대 `.cats`>`.cr` |
-| `chart-2` | 추세·구성 | 선 그래프 `data-line`, 누적 막대 `data-stack`(조각 라벨 `"labels":true`), 결론 `.concl` |
-| `logos` | 로고 격자 4×4 | `.logo-grid4 data-logo-area`>`.lg`(img + 상태 캡션 `.note`) — 로고 크기는 엔진이 면적으로 맞춘다 |
-| `kpi` | 거점 비교 | 지도 `.mapbox` + 번호 핀 `.pin.n`, `.kv`(한 줄 요약), 거점 카드 안 도넛 `.dn-wrap`(`data-donut` + 가운데 `.dn-c` 카운트업), 아래 비율 막대 |
-| `table` | 표 · 숫자 카드 · 상태 줄 | `.hd`(제목 줄 + `.stat`), `.tbl`(병합 칸 `td.g` rowspan, 숫자 `.r`, 소계 `tr.sub`, 합계 `tr.tot`, `.big` `.fill`), `.kpi` 카드, `.tl-rows` > `.tl-row`(칩 색 `--c` = 회색 단계) |
-| `chart-3` | 조각 많은 구성(9개 넘음) | 구분 팔레트 `--cat` 도넛 `.dn-wrap` + 가운데 `.dn-c`, 큰 값 범례 `.lgd`, 컬러칩 범례 `.chips`(`--cols`), 결론 `.concl` |
-| `map-photos` | 지도 · 사진 벽 · 그림 위 표시 | `.mapbox`(`--ar`) + `.pin`(이름표) · `.pin.n`(번호), 숫자 줄 `.stat`, `.pnl` + `.wall`(같은 높이 `--h`, `.cut` = 배경 지운 사진, `i.br` 줄바꿈), `.pic` + `.box` `.tick` `.tag`(그림 기준 %), `.stp`(번호 단계), `.lgs`(한 줄 `--n`칸 로고), `.todo`(자료 기다리는 자리) |
-| `columns` | 3단 카드 + 결론 | `.rule` 칼럼(제목·숫자 `.stat`·`ul.list`·`.hl`) + `.concl` + 출처 `.foot` |
-| `photo-steps` | 사진 + 글 + 단계 | `.figure`(+ 출처 `.src`), `.chip`, 01→05 `.flow`. 스크린샷 한 장을 크게 보일 때는 글 칸을 빼고 `.figure`만 키운다 |
-| `collage` | 콜라주 | `data-collage`(칸 좌표, 1192×578 기준) + `data.js`의 portfolio(배경 지운 인물 사진) |
-| `product` | 상품 카드 | `.bs-grid data-bs` + `data.js`의 bestsellers(+ `motion.js` 카드 영상). 로고 없으면 `retailer`가 글자로, `style` = 스타일 번호 줄, 원단·스펙이 길면 묶음에 `lines`(기본 4) — 카드를 덱에서 새로 만들지 않는다 |
-| `report` | 보고서 카드 | `.stepline`(단계 표시) + `.report`: 미리보기 + `button data-report="reports/…html"` → 같은 화면 위 보고서 창 |
-| `closing` | 마무리 | `.closing`: 로고 + 큰 문장 하나 |
-
-### 공통 클래스
-
-- 카드류: `.card` `.rule`(위 굵은 선) `.hl`(강조 한 줄) `.concl`(결론 띠) `.chip` `.tag`
-- 글: `.label`(작은 머리말) `.title` `.sub` `ul.list`
-- 제목 크기: `.title`(30px) · `.title.l`(32) · `.title.m`(24) · `.title.s`(21). **인라인 `font-size`는 쓰지 않는다**(lint가 잡는다). 덱 전체 제목을 작게 하려면 `deck.css`에 `.title{font-size:28px}` 한 줄
-- 배치: `.grid`(+ 인라인 `grid-template-columns`) `.figure` `.src`
-- 흐름: `.flow`(`.st` + `.ar`) `.stepline`
-- 슬라이드 글자 크기: `class="slide roomy"`(크게) / `"slide compact"`(작게)
-- 등장 애니메이션: `class="reveal" style="--i:N"` — N 순서대로 나타난다
-
-### 차트 — 숫자만 적으면 엔진이 그린다
-
-슬라이드에 들어올 때마다 애니메이션한다.
-
-- 막대: `<div class="vbars" data-bars='[["2023",420],["2026 (F)",480,"fc"],["2027 (F)",560,"fc2"]]'></div>`
-  - 각 항목은 `[이름, 값, 강조 "fc"·"fc2"(선택), 표시 글(선택)]`이다.
-  - 가장 큰 막대가 높이의 85%다. 메모는 `<div class="anno" style="left:40%;top:3%">…</div>`를 안에 넣는다.
-- 선 그래프: `<div class="lc" data-line='{"x":["Jan","Feb",…],"series":[["2026",[42,45,…]],["2025",[…]]]}'></div>`
-- 누적 막대: `<div class="stack" data-stack='{"x":["2024",…],"series":[["Stores",[300,…]],["Online",[…]]],"labels":true}'></div>`
-  - `"labels":true`: 범례 대신 조각마다 "이름 (비율%)"을 붙인다. 넓은 조각은 안에, 좁은 조각은 막대 옆에 겹치지 않게 놓고, 자리가 모자라면 막대를 좁힌다. 빼면 범례만 나온다.
-- 로고 크기: 로고를 담은 칸(예: `.logo-grid4`)에 `data-logo-area="2400"`(로고 하나의 보이는 면적, 무대 px²). 가로로 긴 로고와 네모난 로고가 같은 무게로 보인다. 상한은 `data-logo-max="190,64"`(가로,세로), 한 로고만 크거나 작아 보이면 그 img에 `data-optical="0.8"`. 로고 파일의 여백은 먼저 `images.py trim`으로 잘라 낸다.
-- 도넛: `<div class="donut" style="width:52px;height:52px" data-donut='[["A",55,"var(--tone-2)"],["",45,"var(--fill)"]]'><div class="svg-host"></div></div>`
-- 트리맵: `<div class="tm" data-treemap='[["Brand A",24,"assets/img/…/logo.webp"],…]'></div>` — 큰 값부터 쓴다.
-- 카운트업: `<b data-count="128" data-suffix="%">128%</b>`
-- 공통: JSON은 작은따옴표 속성 안에 쓴다. 글에 `'`가 있으면 `&#39;`로 쓴다.
-
 ### 색·글꼴
 
 - 테마는 `engine.css` 맨 위의 토큰이다. HTML에서는 hex 대신 토큰을 쓴다(`var(--key)` `var(--body)` `var(--muted)` `var(--line)` `var(--tile)`).
@@ -152,59 +68,9 @@ description: 발표 자료(브라우저로 여는 HTML 프레젠테이션 덱)�
 - 테마 파일은 고치지 않는다. 한 덱만 색을 더 바꾸려면 `deck.css`에서 `:root{…}` 토큰을 덮어쓴다.
 - 글꼴은 Inter(영문)·JetBrains Mono(라벨)·Pretendard(한글, 자동)다.
 
-## 카드 영상 만들기 — 상품 카드(`product`)
-
-베스트셀러 카드는 되도록 짧은 영상(소리 없이 반복)으로 낸다. 영상이 없는 카드는 사진 그대로 보인다(영상을 못 만들거나 실패해도 그대로 둔다).
-
-| 공용 라이브러리 | 카드 |
-| --- | --- |
-| 접근됨 + 그 스타일 영상 있음 | 영상(가져다 씀, 크레딧 없음) |
-| 접근됨 + 없음 | 새로 만들기(크레딧 확인 후) → 라이브러리에 넣기. 안 만들면 사진 |
-| 주소 없음·접근 못 함 | 사진. 새 영상도 만들지 않는다(라이브러리 밖에 영상이 따로 생기지 않게) |
-
-라이브러리 주소는 사람마다 `/deck-kit:update`가 한 번 물어 저장한다(키트에는 적지 않음). 카드 하나의 순서:
-
-1. **라이브러리 확인** — `motion_lib.py find --key <스타일 번호> --image <카드 사진> --deck <덱> --case <카드>`. 있으면 `ai/motion/out/<카드>.mp4`로 복사되니 6번으로. "not set"·"not reachable"이면 여기서 멈추고 사진으로 둔다
-2. **사진 준비** — 시작 이미지 = 카드에 보일 사진 그대로
-   - 사진 종류를 정한다: 전신(머리~발) `full` · 상반신(머리~허벅지, 상의·코트) `upper` · 하반신(허리~발, 스커트·바지) `lower`. 여러 명 한 장·옷만 찍은 사진은 영상으로 만들지 않는다(움직임이 약하거나 맞는 프롬프트가 없음)
-   - 같은 장의 카드는 인물 크기를 맞춘다: `images.py cut` → `images.py fit --size 900x1200 --bg #RRGGBB`(배경 제거가 이상하면 원본을 카드 비율로 잘라 쓴다)
-   - 짧은 변 600px 이상이 좋다(낮아도 무늬가 유지되면 쓴다). 색 띠로 여백을 채우지 않는다
-   - 머리·발이 잘려 종류에 안 맞으면 AI로 바깥을 채울 수 있다(크레딧 — 사용자 확인 후). 채운 뒤 원래 픽셀을 다시 덮어 사람·옷은 원본 그대로 둔다
-3. **plan 쓰기** — `ai/motion/plan.json`에 카드마다 `{"case", "image", "prompt": "full|upper|lower"}`. 프롬프트는 `tools/motion_prompts.json`의 고정 문장을 쓴다(직접 쓰지 않는다). 상반신·하반신은 끝 장면을 시작 이미지로 맞춘다(자동, 화면이 다가가는 것을 줄임)
-4. **확인받기** — `motion_run.py --plan … --dry-run`의 목록·크레딧을 보여 주고 OK를 받는다
-5. **생성** — `motion_run.py --plan …`. 모델·옵션은 고르지 않는다: 기본 모델(`MODELS`, 지금 Kling 4.0)을 쓴다. 모델을 바꾸는 것은 키트 변경(AX 팀이 같은 사진으로 비교한 뒤 `MODELS`를 고침)
-6. **결과 확인** — `motion_post.py`가 만드는 3장 띠(`work/motion_frames/`)와 영상을 보고 아래를 모두 통과해야 쓴다
-   - 옷의 모양·색·무늬·로고가 원본과 같다
-   - 없던 몸·옷이 생기지 않았다(상반신에 다리·하의, 하반신에 얼굴, 손가락 수)
-   - 얼굴·손이 어색하지 않다, 사람이 걷거나 자리를 옮기지 않는다
-   - 카메라가 고정이다(확대·이동 없음). 조금 다가가면 `--box`로 맞출 수 있는지 본다
-   - 움직임이 보이되 과하지 않다, 반복 이음새가 튀지 않는다
-   - 실패 → 같은 설정으로 한 번 다시(크레딧 — 확인 후). 또 실패 → 그 카드는 사진으로 두고 사유를 사용자에게 알린다. 업로드 오류·시간 초과는 품질 실패가 아니다: 로그의 job으로 다시 받는다
-7. **붙이기·저장** — `motion_post.py <clip> --image <카드 사진> --box <카드 비율> --link`로 반복 영상 + motion.js 연결. 통과한 원본 클립은 `motion_lib.py add --key <스타일 번호> --image … --clip ai/motion/out/<카드>.mp4 --prompt <종류> --model <모델>`로 라이브러리에 넣는다
-
-원본 사진 출처가 바이어·리테일러 사이트면 AI 영상은 내부 미팅용이다 — 외부 공유용 덱이면 사용자에게 먼저 묻는다.
-
-## 도구 — `python KIT/tools/<도구>` (인자로 덱 폴더를 주거나, 덱 폴더에서 실행)
+## 도구 — `python KIT/tools/<도구>` (인자로 덱 폴더를 주거나, 덱 폴더에서 실행 — 표는 `KIT/steps/tools.md`)
 
 Mac에서는 이 문서의 `python`을 모두 `python3`로 쓴다(Homebrew Python에는 `python` 명령이 없다).
-
-| 도구 | 쓰임 |
-| --- | --- |
-| `shots.py [덱] [--reports] [--size 1920,1080] [--jobs N] [--query lang=kr]` | 전 슬라이드 캡처 → `work/shots/`, 덱 저장 시각과 콘솔 오류 출력. 실패한 장은 따로 다시 찍고, 그래도 안 되면 목록을 낸다. `--reports`: 보고서 미리보기를 `assets/img/reports/`에 만든다. `--query`: 주소에 붙일 값(언어 전환 등) |
-| `pdf.py [덱] [--out 파일] [--skip 2,7,id] [--query lang=kr]` | 덱을 PDF로 인쇄(캡처가 아니라 글자 그대로 — 선명·검색 가능). 한 장 = 한 쪽, 연출은 끝난 모습, 화면 가득 영상 장과 검수에서 "PDF에서 빼기"한 장은 빼고 카드 영상은 사진, `--skip`: 더 뺄 장(번호나 id). 기본 `<덱 폴더>/<폴더 이름>.pdf`. 내용이 쪽 밖으로 넘친 장은 PDF에서 잘리므로 WARN으로 알린다. 받은 사람이 브라우저에서 바로 인쇄해도 한 장 = 한 쪽으로 나온다(엔진 v1.8) |
-| `compress.py [덱] [--dry-run]` | 공유 폴더 줄이기: 영상(1920px·6Mbit/s 넘으면 H.264로), 사진(긴 변 1600px), 보고서 .html 속 사진. 이름·형식 그대로, 10% 넘게 줄 때만 바꾸고 원본은 `work/compress_originals/`. 100MB 넘으면 경고 + 큰 파일 목록 |
-| `lint.py [덱]` | 작업 폴더 점검(읽기만 함): 태그 짝, 슬라이드 id, 남은 견본, 빠진 파일, 노트 키, 덱 스크립트, deck.css 중복·안 쓰는 클래스, **내용이 쪽 밖으로 넘친 장**(브라우저로 재서 px로 알림 — PDF에서 잘린다), 엔진이 키트와 같은지, 백업이 쓰는 파일, 양식 칸 남김 |
-| `snapshot.py vN_<이름> "설명" [덱]` | 피드백 반영 **전** 지금 덱 코드를 `versions/vN_<이름>/`에 백업하고(덱을 만드는 스크립트와 그 데이터 .json·.csv 등도 함께) `versions/README.md` 표에 줄을 더한다 |
-| `extract.py <파일.pptx> [--deck 덱]` | PPT → 슬라이드별 글·노트·그림(`work/manifest.json`), 그림·내장 보고서는 `presentation/`에. 그림은 PPT에서 잘린 대로, SVG 그림은 .svg로. 읽지 못한 그림은 건너뛰고 끝에 목록 |
-| `images.py web｜cut｜trim｜fit <이미지…> --out 폴더` | 웹용 크기 · 배경 제거(투명) · 로고 여백 자르기(`--clear`: 흰 배경도 투명 — 트리맵처럼 로고를 칠하는 곳에 필요) · 인물을 같은 크기 캔버스에 |
-| `used_assets.py [덱] [--move]` | 안 쓰는 파일·빠진 파일 찾기(`--move`: `work/unused_assets/`로 옮김). `versions/` 백업이 쓰는 파일은 사용 중으로 친다 |
-| `dedupe_presentation.py [덱] [--dry]` | 똑같은 파일 정리 |
-| `review.py [덱] [--all] [--shots 폴더] [--resolve N "답"]` | 덱 안 검수 메모(R, `assets/review.js`) 읽기: 반영 안 한 핀 표(핀 · 장 · id · 메모 · 누른 곳), PDF에서 뺄 장. `--shots`: 핀이 찍힌 캡처. `--resolve`: 반영함 + 답(먼저 `assets/review_backup/`에 백업) |
-| `notes_probe.py [덱]` · `review_probe.py [덱]` | 발표자 창·스크립트 저장 시험 · 검수 모드 시험(덱 사본에서) |
-| `motion_run.py --plan plan.json [--dry-run]` | Higgsfield로 카드 영상 생성(기본 Kling 4.0 `kling4_0`, 5초 720p) — **크레딧. 먼저 `--dry-run`, 사용자 확인 후** |
-| `motion_post.py <clip.mp4> --image … [--box 280:450] [--link]` | 영상을 끊김 없는 반복 영상으로 만들고 motion.js에 연결 |
-| `motion_lib.py find｜add --key <스타일 번호> …` | 공용 영상 라이브러리에서 찾아 쓰기 · 새 영상 넣기. 위치는 사용자 설정 `DECKKIT_MOTION_LIB`(`/deck-kit:update`가 물어 저장), 없거나 접근 못 하면 건너뜀 |
-| `anim_probe.py` · `perf_probe.py` | 애니메이션 흔들림 · 재생 성능 측정 |
 
 필요한 것: Python 3 + `pip install pillow websocket-client playwright`(배경 제거는 numpy·scipy·rembg, PPT 추출은 olefile) + `python -m playwright install chromium`(캡처용 브라우저, 약 150MB, 한 번), 영상 작업은 ffmpeg.
 도구를 돌리다 `ModuleNotFoundError`나 "브라우저 없음"이 나오면 사용자에게 명령을 보여 주지 말고 `/deck-kit:update`의 환경 점검·설치 단계(`skills/update/SKILL.md`)를 그대로 수행한다.

@@ -78,7 +78,7 @@ if (P / "assets" / "notes.js").exists():
 
 # 3b. review notes (R in the deck)
 if "assets/review.js" not in html:
-    add("Review", "WARN", 'the deck does not load assets/review.js — saved review pins will not show; add <script src="assets/review.js"></script> after notes.js (SKILL.md 옛 덱 올리기)')
+    add("Review", "WARN", 'the deck does not load assets/review.js — saved review pins will not show; add <script src="assets/review.js"></script> after notes.js (KIT steps/feedback.md 예전 키트로 만든 덱)')
 if (P / "assets" / "review.js").exists():
     rv = read_js_data(P / "assets" / "review.js")
     gone = sorted({p.get("slide") for p in rv.get("pins", []) if p.get("slide") not in sl} | {k for k in rv.get("nopdf", []) if k not in sl})
@@ -138,7 +138,7 @@ for f in ("engine.js", "engine.css"):
         if same:
             add("Engine", "OK", "%s identical to the kit: True" % f)
         elif older:
-            add("Engine", "WARN", "%s: deck engine v%d.%d, kit v%d.%d — fine for a deck in progress; to upgrade see SKILL.md" % ((f,) + deck_v + kit_v))
+            add("Engine", "WARN", "%s: deck engine v%d.%d, kit v%d.%d — fine for a deck in progress; to upgrade see KIT steps/feedback.md" % ((f,) + deck_v + kit_v))
         else:
             add("Engine", "ERR", "%s identical to the kit: False — engine changes belong in deck-kit, deck fixes in deck.css" % f)
 
