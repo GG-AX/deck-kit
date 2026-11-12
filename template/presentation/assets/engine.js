@@ -1,4 +1,4 @@
-/* deck-kit engine v1.8 (2026-11-10) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
+/* deck-kit engine v1.8 (2026-11-12) — classic script, works from file://. Fixed: decks never edit it; change it only in deck-kit and raise the version (README). */
 (function () {
   "use strict";
   var VERSION = "1.8";
@@ -390,7 +390,8 @@
     each("[data-treemap]", function (host) {
       var D = JSON.parse(host.getAttribute("data-treemap")), GAP = 4;
       Promise.all(D.map(function (d) {
-        return new Promise(function (ok) { var i = new Image(); i.onload = function () { ok(i.naturalWidth / i.naturalHeight); }; i.onerror = function () { ok(3); }; i.src = d[2]; });
+        return new Promise(function (ok) { if (!d[2]) return ok(3);   // no logo: the name is written instead
+        var i = new Image(); i.onload = function () { ok(i.naturalWidth / i.naturalHeight); }; i.onerror = function () { ok(3); }; i.src = d[2]; });
       }).concat(fontsReady())).then(function (ratios) {   // measured after logos and fonts are in
         var W = host.clientWidth, H = host.clientHeight, total = D.reduce(function (s, d) { return s + d[1]; }, 0);
         var items = D.map(function (d, k) { return { d: d, k: k, a: d[1] / total * W * H }; });
@@ -400,7 +401,8 @@
           var fs = Math.max(12, Math.min(30, Math.sqrt(w * h) / 7.5));
           return '<div class="tl' + (t.r.k < 5 ? " inv" : "") + '" style="left:' + (t.x + GAP / 2).toFixed(1) + "px;top:" + (t.y + GAP / 2).toFixed(1) +
             "px;width:" + w.toFixed(1) + "px;height:" + h.toFixed(1) + "px;--c:" + tone(t.r.k) + ";--k:" + t.r.k + '">' +
-            '<img src="' + t.r.d[2] + '" alt="' + esc(t.r.d[0]) + '" style="width:' + lw.toFixed(0) + "px;height:" + (lw / r).toFixed(0) + 'px">' +
+            (t.r.d[2] ? '<img src="' + t.r.d[2] + '" alt="' + esc(t.r.d[0]) + '" style="width:' + lw.toFixed(0) + "px;height:" + (lw / r).toFixed(0) + 'px">'
+                      : '<i style="--fs:' + Math.max(12, fs * 0.55).toFixed(0) + 'px">' + esc(t.r.d[0]) + "</i>") +
             '<b style="--fs:' + fs.toFixed(0) + 'px">' + t.r.d[1] + "%</b></div>";
         }).join("");
       });
@@ -410,16 +412,20 @@
   /* ---------- count-up ---------- */
   var STATIC = /static/.test(location.search);
   if (STATIC) document.documentElement.classList.add("static");
+  // printing from the browser: every slide at its end state (engine.css @media print lays them out one per page)
+  addEventListener("beforeprint", function () { document.documentElement.classList.add("static"); [].forEach.call(document.images, function (i) { i.loading = "eager"; }); });
+  addEventListener("afterprint", function () { if (!STATIC) document.documentElement.classList.remove("static"); });
   function countUp(slide) {
     if (STATIC) return;
     slide.querySelectorAll("[data-count]").forEach(function (n) {
-      var to = parseFloat(n.getAttribute("data-count")), suf = n.getAttribute("data-suffix") || "", t0 = null;
-      n.textContent = "0" + suf;
+      var raw = n.getAttribute("data-count"), to = parseFloat(raw), suf = n.getAttribute("data-suffix") || "", t0 = null;
+      var dp = (raw.split(".")[1] || "").length, fmt = { minimumFractionDigits: dp, maximumFractionDigits: dp };   // 45.6 stays 45.6 (as ?static and the PDF show it)
+      n.textContent = (0).toLocaleString("en-US", fmt) + suf;
       setTimeout(function () {
         requestAnimationFrame(function f(now) {
           if (t0 === null) t0 = now;
           var p = Math.min(1, (now - t0) / 900), e = 1 - Math.pow(1 - p, 3);
-          n.textContent = Math.round(to * e).toLocaleString("en-US") + suf;
+          n.textContent = (to * e).toLocaleString("en-US", fmt) + suf;
           if (p < 1) requestAnimationFrame(f);
         });
       }, 300);
@@ -704,10 +710,10 @@
 
   /* ---------- presenter window (notes only on the presenter's screen) ---------- */
   // presenter-only window: fixed monotone colors (not theme tokens); amber = unsaved, green = saved
-  var PRES_CSS = "body{margin:0;background:#1C1C1E;color:#F2F2F4;font-family:'Segoe UI','Malgun Gothic',sans-serif;display:grid;grid-template-rows:auto 1fr auto;height:100vh}" +
+  var PRES_CSS = "body{margin:0;background:#1C1C1E;color:#F2F2F4;font-family:'Segoe UI','Malgun Gothic',-apple-system,'Apple SD Gothic Neo',sans-serif;display:grid;grid-template-rows:auto 1fr auto;height:100vh}" +
     "header{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #3A3A3C}header b{font-size:22px}header .t{font:600 22px Consolas,monospace;color:#D1D1D6;margin-left:auto}" +
     "main{display:grid;grid-template-columns:2fr 1fr;gap:18px;padding:18px 20px;min-height:0}" +
-    ".notes{box-sizing:border-box;width:100%;height:100%;resize:none;border:1px solid transparent;outline:0;color:inherit;font:21px/1.55 'Segoe UI','Malgun Gothic',sans-serif;background:#2C2C2E;border-radius:6px;padding:18px 22px}" +
+    ".notes{box-sizing:border-box;width:100%;height:100%;resize:none;border:1px solid transparent;outline:0;color:inherit;font:21px/1.55 'Segoe UI','Malgun Gothic',-apple-system,'Apple SD Gothic Neo',sans-serif;background:#2C2C2E;border-radius:6px;padding:18px 22px}" +
     ".notes:focus{border-color:#636366}.notes::placeholder{color:#8E8E93}" +
     ".side{display:flex;flex-direction:column;gap:12px}.box{background:#2C2C2E;border-radius:6px;padding:14px 16px}.box small{display:block;font:600 11px Consolas,monospace;letter-spacing:.14em;color:#AEAEB2;margin-bottom:6px}" +
     ".box div{font-size:17px;font-weight:700}footer{display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid #3A3A3C}" +
@@ -1011,7 +1017,10 @@
       return;
     }
     if (reviewing && (e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) { e.preventDefault(); saveStore(window, RVSTORE); return; }
-    var ov = document.getElementById("overlay").classList.contains("open");
+    var t = e.target;   // typing in a field of a slide, and browser shortcuts (Cmd+P, Ctrl+F …), are not deck keys
+    if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.isContentEditable)) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var ov =document.getElementById("overlay").classList.contains("open");
     if (e.key === "Escape") { if (ov) closeReport(); toggleOverview(false); rvClosePop(); return; }
     if (ov) return;
     var k = e.key;
@@ -1072,7 +1081,7 @@
     addEventListener("pagehide", function () { if (presenter && !presenter.closed) presenter.close(); });
     addEventListener("hashchange", function () { var n = parseInt(location.hash.slice(1), 10); if (n && n - 1 !== idx) go(n - 1); });
     var n = parseInt(location.hash.slice(1), 10);
-    idx = n ? Math.min(slides.length, n) - 1 : 0;
+    idx = n ? Math.max(1, Math.min(slides.length, n)) - 1 : 0;   // #-3 → first slide
     fit(); render();
     if (RV_SHOT) { document.documentElement.classList.add("rv-shot"); rvDraw(); }
     // folder chosen before and writing still allowed: save by itself from the start (and save what was left unsaved)

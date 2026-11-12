@@ -1,10 +1,11 @@
 """Screenshot every slide (animations off: ?static) with headless Chromium and print browser console errors.
 
-usage: python shots.py [deck] [--from N] [--to N] [--size W,H] [--out DIR] [--jobs N] [--reports]
+usage: python shots.py [deck] [--from N] [--to N] [--size W,H] [--out DIR] [--jobs N] [--reports] [--query lang=kr]
   deck       deck workspace, its presentation folder or the .html (default: current folder)
   --out      default <deck>\\work\\shots  (files sNN.png)
   --jobs     slides captured at the same time (default 6). A slide that fails or times out is retried
              alone afterwards; the ones that still fail are listed at the end
+  --query    added to the deck address (e.g. lang=kr for a deck that switches language by ?lang=)
   --reports  also capture the top of every report a slide opens (data-report) and save it as the
              report card preview: presentation\\assets\\img\\reports\\<report name>.webp
 Prints when the deck .html was last saved — if a build step writes it, check that the build really ran.
@@ -28,6 +29,7 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--jobs", type=int, default=6)
     ap.add_argument("--reports", action="store_true")
+    ap.add_argument("--query", default="")
     a = ap.parse_args()
 
     html = find_html(a.deck)
@@ -42,7 +44,7 @@ def main():
         if f.exists():
             f.unlink()
         try:
-            _, errors = browser_cli(html.as_uri() + "?static#%d" % k, "--screenshot=" + str(f), size=a.size)
+            _, errors = browser_cli(html.as_uri() + "?static" + ("&" + a.query if a.query else "") + "#%d" % k, "--screenshot=" + str(f), size=a.size)
         except subprocess.TimeoutExpired:
             errors = []
         return k, f, errors

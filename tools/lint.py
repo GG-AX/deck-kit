@@ -3,7 +3,8 @@
 usage: python lint.py [deck]
 Checks: HTML tag balance · slide ids (duplicate, invalid) · leftover samples · referenced files exist ·
 notes.js keys vs slides · deck scripts (work\\, tools\\) compile · work\\*.json parse ·
-deck.css rules defined twice (the later one wins) and classes no slide uses · inline title font sizes · engine identical to the kit ·
+deck.css rules defined twice (the later one wins) and classes no slide uses · inline title font sizes ·
+content running past the page area (headless Chromium; the PDF would cut it off) · engine identical to the kit ·
 versions\\ backups open (their files still exist) · template placeholders left in CLAUDE.md / session.md / FEEDBACK.md / 사용법 (How to use).txt.
 Exit code 1 when there is an ERR line.
 """
@@ -14,7 +15,7 @@ import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
-from deckutil import deck_root, find_html, read_js_data
+from deckutil import deck_root, find_html, overflow, read_js_data
 
 KIT = Path(__file__).resolve().parent.parent / "template" / "presentation" / "assets"
 R = []
@@ -112,6 +113,16 @@ if css_path.exists():
     add("CSS", "WARN" if unused else "OK", "classes in deck.css no slide uses: %d %s" % (len(unused), unused))
 inline = re.findall(r'class="[^"]*\btitle\b[^"]*"[^>]*style="[^"]*font-size', html)
 add("CSS", "WARN" if inline else "OK", "titles with an inline font-size: %d — use .title.l/.m/.s, or one .title rule in deck.css (DESIGN 덱 전체 통일)" % len(inline))
+
+# 5b. content past the page area — the screen may show it, the PDF cuts it off
+try:
+    over = overflow(html_path)
+    for n, sid, down, side, what in over:
+        add("Layout", "WARN", "slide %d (%s): %s runs past the page area — %dpx below, %dpx right (the PDF cuts it off: shorten, split the slide or make it smaller)" % (n, sid, what, down, side))
+    if not over:
+        add("Layout", "OK", "content past the page area: none")
+except Exception as e:   # no browser yet: the rest of lint still runs
+    add("Layout", "INFO", "overflow check skipped (%s) — /deck-kit:update installs the browser" % str(e).splitlines()[0][:80])
 
 # 6. engine untouched
 def engine_ver(p):

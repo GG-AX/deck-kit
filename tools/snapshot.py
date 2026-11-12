@@ -3,7 +3,8 @@
 usage: python snapshot.py vN_<name> "one-line description" [deck]
   deck   deck workspace (default: current folder)
 Copies the deck .html (its <head> gets <base href="../../presentation/"> and the CSS/JS paths point to the
-copy), every .css/.js in presentation\\assets\\ and the deck's own scripts in work\\*.py and tools\\*.py,
+copy), every .css/.js in presentation\\assets\\ and the deck's own scripts and their data in work\\ and tools\\
+(.py, .json, .csv, .tsv, .yaml — a deck built by a script needs its data to be rebuilt; files over 20 MB are left out),
 then adds a row to the versions\\README.md table. Pictures, video and fonts stay shared with the live folder.
 Run it before the first edit of a feedback round — a backup taken after an edit no longer matches the old deck.
 """
@@ -31,10 +32,12 @@ for f in assets:
         c = V / "assets" / f
         c.write_text(re.sub(r"url\((['\"]?)(?![a-zA-Z][\w+.-]*:|/|#)", r"url(\g<1>../../../presentation/assets/",
                             c.read_text(encoding="utf-8")), encoding="utf-8")
+KEEP = (".py", ".json", ".csv", ".tsv", ".yaml", ".yml")
 for d in ("work", "tools"):
-    for py in (root / d).glob("*.py"):
-        (V / d).mkdir(exist_ok=True)
-        shutil.copy2(py, V / d / py.name)
+    for f in (root / d).glob("*"):
+        if f.is_file() and f.suffix.lower() in KEEP and f.stat().st_size <= 20e6:
+            (V / d).mkdir(exist_ok=True)
+            shutil.copy2(f, V / d / f.name)
 
 h = html.read_text(encoding="utf-8")
 h = re.sub(r"(<head[^>]*>)", r'\1\n<base href="../../presentation/">', h, count=1)

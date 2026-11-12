@@ -212,3 +212,29 @@ class Chromium:
 
     def __exit__(self, *exc):
         self.close()
+
+
+OVERFLOW_JS = r"""(async () => {
+  await document.fonts.ready;
+  await new Promise(r => setTimeout(r, 800));   // charts and treemaps draw after fonts and logos
+  return [...document.querySelectorAll('.slide')].map((s, k) => {
+    const p = s.querySelector('.page') || s, b = p.getBoundingClientRect(), z = s.getBoundingClientRect().width / 1280;
+    let down = 0, side = 0, what = '';
+    p.querySelectorAll('*').forEach(e => {
+      const r = e.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const d = (r.bottom - b.bottom) / z, w = (r.right - b.right) / z;
+      if (d > down || w > side) what = e.tagName.toLowerCase() + [...e.classList].map(c => '.' + c).join('');
+      down = Math.max(down, d); side = Math.max(side, w);
+    });
+    return [k + 1, s.dataset.src || '', Math.round(down), Math.round(side), what];
+  }).filter(x => x[2] > 2 || x[3] > 2);
+})()"""
+
+
+def overflow(html, query=""):
+    """Slides whose content runs past the page area (the PDF cuts it off silently).
+    Returns [(slide number, id, px below, px to the right, element)] at 1280×720."""
+    with Chromium(args=("--allow-file-access-from-files",)) as c:
+        c.open(Path(html).resolve().as_uri() + "?static" + ("&" + query if query else "") + "#1")
+        return c.ev(OVERFLOW_JS, wait=True) or []

@@ -228,7 +228,9 @@ ul.list li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:
 .tm .tl{position:absolute;border-radius:6px;background:var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow:hidden;opacity:0;transform-origin:center}
 .tm .tl img{display:block;object-fit:contain;filter:brightness(0) opacity(.82)}
 .tm .tl b{font:800 var(--fs,16px)/1 var(--ff);letter-spacing:-.02em;color:var(--key)}
+.tm .tl i{font:600 var(--fs,12px)/1.15 var(--ff);font-style:normal;color:var(--key);text-align:center;padding:0 6px}
 .tm .tl.inv img{filter:brightness(0) invert(1)}
+.tm .tl.inv i{color:#fff}
 .tm .tl.inv b{color:#fff}
 .slide.active .tm .tl{animation:tmIn .6s cubic-bezier(.2,.8,.25,1) both;animation-delay:calc(var(--k)*70ms + 300ms)}
 @keyframes tmIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
@@ -454,3 +456,19 @@ video.ph{background:#000}
 .rv-pop .del{background:transparent;color:#FF9F8F}
 html.static .rv-layer,html.static .rv-bar,html.static .rv-pop{display:none}
 html.static.rv-shot .rv-layer{display:block;pointer-events:none}
+
+/* printing from the browser (Cmd/Ctrl+P): one page per slide at the end state of the animations — the engine adds
+   html.static while printing. Full-screen video slides are left out (tools/pdf.py does the same) */
+@media print{
+@page{size:1280px 720px;margin:0}
+html,body{height:auto!important;overflow:visible!important;background:#fff}
+body>*:not(.stage){display:none!important}
+.stage{position:static!important;display:block!important}
+.deck{transform:none!important;height:auto!important}
+.slide{position:relative!important;inset:auto!important;width:1280px;height:720px;overflow:hidden;break-after:page;
+  opacity:1!important;visibility:visible!important;transform:none!important}
+.slide:has(.video-full){display:none!important}
+.slide.dark{background:linear-gradient(135deg,var(--bg-deep),var(--bg-mid))}
+.slide:not(.dark)::before{border-radius:0;box-shadow:none}
+.rv-layer,.rv-bar,.rv-pop{display:none!important}
+}

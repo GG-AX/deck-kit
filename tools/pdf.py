@@ -1,19 +1,21 @@
 """Print the deck to a PDF with headless Chromium — text stays text (sharp, searchable), not screenshots.
 
-usage: python pdf.py [deck] [--out FILE] [--skip 2,7,closing]
+usage: python pdf.py [deck] [--out FILE] [--skip 2,7,closing] [--query lang=kr]
   deck    deck workspace, its presentation folder or the .html (default: current folder)
   --out   default <deck workspace>\\<workspace folder name>.pdf
   --skip  more slides to leave out: numbers as in the deck (1 = first) or slide ids (data-src)
+  --query added to the deck address (e.g. lang=kr for a deck that switches language by ?lang=)
 One page per slide (1280×720), animations at their end state (?static).
 Full-screen video slides (.video-full) are left out, and so are slides marked "이 장 PDF에서 빼기" in the deck's
 review mode (assets/review.js); product-card clips show their photo.
+Warns about slides whose content runs past the page area — the PDF cuts that part off.
 """
 import argparse
 import base64
 import json
 from pathlib import Path
 
-from deckutil import Chromium, deck_root, find_html, read_js_data
+from deckutil import Chromium, deck_root, find_html, overflow, read_js_data
 
 # before the deck's scripts run: motion.js may set window.MOTION, the engine then sees no clips and keeps the photos
 NO_MOTION = "Object.defineProperty(window, 'MOTION', {get: function () { return {}; }, set: function () {}});"
@@ -64,6 +66,7 @@ def main():
     ap.add_argument("deck", nargs="?")
     ap.add_argument("--out")
     ap.add_argument("--skip", default="")
+    ap.add_argument("--query", default="")
     a = ap.parse_args()
     skip = [s.strip() for s in a.skip.split(",") if s.strip()]
 
@@ -77,7 +80,7 @@ def main():
     with Chromium(size=(1280, 720), args=("--allow-file-access-from-files",)) as c:
         c.send("Page.enable")
         c.send("Page.addScriptToEvaluateOnNewDocument", source=NO_MOTION)
-        c.open(html.as_uri() + "?static#1")
+        c.open(html.as_uri() + "?static" + ("&" + a.query if a.query else "") + "#1")
         pages, cut = c.ev(PREPARE % (json.dumps(skip), json.dumps(PRINT_CSS)), wait=True)
         r = c.send("Page.printToPDF", printBackground=True, preferCSSPageSize=True)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -86,6 +89,8 @@ def main():
                                          out.stat().st_size / 1e6))
     if marked:
         print("검수에서 'PDF에서 빼기'로 표시한 장:", ", ".join(marked))
+    for n, sid, down, side, what in overflow(html, a.query):
+        print("WARN slide %d (%s): %s runs past the page area (%dpx below, %dpx right) — cut off in the PDF" % (n, sid, what, down, side))
 
 
 if __name__ == "__main__":
