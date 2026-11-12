@@ -476,6 +476,7 @@
     document.querySelectorAll("#dots i[data-k]").forEach(function (d) { d.classList.toggle("on", +d.getAttribute("data-k") === idx); });
     if (location.hash !== "#" + (idx + 1)) history.replaceState(null, "", "#" + (idx + 1));
     playMedia(); updatePresenter(); rvClosePop(); rvSync();
+    document.dispatchEvent(new CustomEvent("deck:slide", { detail: { index: idx + 1, id: slides[idx].getAttribute("data-src") } }));
   }
   function go(k) { idx = Math.max(0, Math.min(slides.length - 1, k)); render(); }
   function step(d) { go(idx + d); }
@@ -509,7 +510,16 @@
      two decks, or two copies of one deck, never see each other's drafts, files or presenter window. */
   var DECK_DIR = decodeURIComponent(location.pathname).replace(/^\/([A-Za-z]:)/, "$1").replace(/\//g, "\\").replace(/\\[^\\]*$/, "");
   var KEY = "deck:" + DECK_DIR.toLowerCase();
-  window.DECK_ENGINE = { version: VERSION, key: KEY };   // read by the kit's tools
+  // For scripts a deck or another kit adds after engine.js (e.g. a language switch) — these names stay the same across
+  // engine versions (README "밖에서 쓰는 엔진 기능"). go(n) / index() count slides from 1; redraw() measures again the parts
+  // that size themselves to their box (stacked-bar labels, treemaps, logo sizes) after text or visibility changed;
+  // every slide change fires document event "deck:slide" with detail {index, id}.
+  window.DECK_ENGINE = {
+    version: VERSION, key: KEY,   // read by the kit's tools
+    go: function (n) { go((parseInt(n, 10) || 1) - 1); },
+    index: function () { return idx + 1; },
+    redraw: function () { renderStacks(); renderTreemaps(); fontsReady().then(renderLogoAreas); }
+  };
   var NB = window.DECK_NOTES || { saved: "", notes: D.notes || {} };
   var NOTES = {}, EDITED = {}, DRAFT = KEY + "|notes-draft", dirty = false, draftStale = false, presSrc = null;
   for (var nk in NB.notes) NOTES[nk] = NB.notes[nk];
